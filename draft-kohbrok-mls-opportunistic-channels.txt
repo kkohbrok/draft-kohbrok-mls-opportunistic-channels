@@ -2,13 +2,13 @@
 
 
 
-WG Working Group                                              Y. N. Here
-Internet-Draft                                    Your Organization Here
-Intended status: Informational                               21 May 2026
-Expires: 22 November 2026
+WG Working Group                                              K. Kohbrok
+Internet-Draft                                                 R. Robert
+Intended status: Informational                               Phoenix R&D
+Expires: 22 November 2026                                    21 May 2026
 
 
-                           TODO - Your title
+                       Opportunistic MLS Channels
                   draft-todo-yourname-protocol-latest
 
 Abstract
@@ -70,7 +70,7 @@ Table of Contents
    4.  IANA Considerations
    5.  Normative References
    Acknowledgments
-   Author's Address
+   Authors' Addresses
 
 1.  Introduction
 
@@ -107,8 +107,13 @@ Acknowledgments
 
    TODO acknowledge.
 
-Author's Address
+Authors' Addresses
 
-   Your Name Here
-   Your Organization Here
-   Email: your.email@example.com
+   Konrad Kohbrok
+   Phoenix R&D
+   Email: konrad@ratchet.ing
+
+
+   Raphael Robert
+   Phoenix R&D
+   Email: ietf@raphaelrobert.com
