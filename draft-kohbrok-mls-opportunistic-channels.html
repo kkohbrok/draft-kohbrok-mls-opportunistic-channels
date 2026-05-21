@@ -8,11 +8,17 @@
 <meta content="Konrad Kohbrok" name="author">
 <meta content="Raphael Robert" name="author">
 <meta content="
-       TODO Abstract 
+       This document defines two extensions to the Messaging Layer Security (MLS)
+protocol.  First, it defines an MLS WireFormat that follows the encrypted MLS
+PrivateMessage format, but omits the sender signature and relies on symmetric
+authentication by group secrets.  Second, it defines Opportunistic Channel
+Groups, a two-member MLS group variant that is bootstrapped from an existing
+MLS group using an MLS targeted message and evolves only by injecting PSKs from
+MLS groups shared by both members. 
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="messaging" name="keyword">
-<meta content="draft-todo-yourname-protocol-latest" name="ietf.draft">
+<meta content="draft-kohbrok-mls-opportunistic-channels-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.33.0
     Python 3.12.13
@@ -1058,9 +1064,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <div id="internal-metadata" class="document-information">
 <dl id="identifiers">
 <dt class="label-workgroup">Workgroup:</dt>
-<dd class="workgroup">WG Working Group</dd>
+<dd class="workgroup">Messaging Layer Security</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-todo-yourname-protocol-latest</dd>
+<dd class="internet-draft">draft-kohbrok-mls-opportunistic-channels-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-05-21" class="published">21 May 2026</time>
@@ -1085,7 +1091,13 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">Opportunistic MLS Channels</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TODO Abstract<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines two extensions to the Messaging Layer Security (MLS)
+protocol.  First, it defines an MLS WireFormat that follows the encrypted MLS
+PrivateMessage format, but omits the sender signature and relies on symmetric
+authentication by group secrets.  Second, it defines Opportunistic Channel
+Groups, a two-member MLS group variant that is bootstrapped from an existing
+MLS group using an MLS targeted message and evolves only by injecting PSKs from
+MLS groups shared by both members.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1093,14 +1105,15 @@ svg :is([fill="white"], [fill^="#fff"]) {
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://example.com/LATEST">https://example.com/LATEST</a></span>.
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-todo-yourname-protocol/">https://datatracker.ietf.org/doc/draft-todo-yourname-protocol/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+        The latest revision of this draft can be found at <span><a href="https://kkohbrok.github.io/draft-kohbrok-mls-opportunistic-channels/">https://kkohbrok.github.io/draft-kohbrok-mls-opportunistic-channels/</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-kohbrok-mls-opportunistic-channels/">https://datatracker.ietf.org/doc/draft-kohbrok-mls-opportunistic-channels/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">
         Discussion of this document takes place on the
-        WG Working Group mailing list (<span><a href="mailto:WG@example.com">mailto:WG@example.com</a></span>),
-        which is archived at <span><a href="https://example.com/WG">https://example.com/WG</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+        Messaging Layer Security Working Group mailing list (<span><a href="mailto:mls@ietf.org">mailto:mls@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/mls/">https://mailarchive.ietf.org/arch/browse/mls/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/mls/">https://www.ietf.org/mailman/listinfo/mls/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 <p id="section-note.1-4">Source for this draft and an issue tracker can be found at
-        <span><a href="https://github.com/USER/REPO">https://github.com/USER/REPO</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+        <span><a href="https://github.com/kkohbrok/draft-kohbrok-mls-opportunistic-channels">https://github.com/kkohbrok/draft-kohbrok-mls-opportunistic-channels</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1157,19 +1170,56 @@ svg :is([fill="white"], [fill^="#fff"]) {
             <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-unsigned-private-messages" class="internal xref">Unsigned Private Messages</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-format" class="internal xref">Format</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-decoding" class="internal xref">Decoding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-transcript-hashes-and-propo" class="internal xref">Transcript Hashes and Proposal References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-sender-authentication" class="internal xref">Sender Authentication</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-opportunistic-channel-group" class="internal xref">Opportunistic Channel Groups</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-ocg-marker-component" class="internal xref">OCG Marker Component</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-ocg-group-state" class="internal xref">OCG Group State</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-bootstrapping" class="internal xref">Bootstrapping</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-proposals-and-commits" class="internal xref">Proposals and Commits</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-capabilities" class="internal xref">Capabilities</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1180,7 +1230,26 @@ svg :is([fill="white"], [fill^="#fff"]) {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">TODO Introduction<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-1">MLS <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span> provides authenticated group key agreement, encrypted
+application messages, and group evolution with forward secrecy and
+post-compromise security.  Some applications need a light-weight encrypted
+channel between two members who already share at least one MLS group.  Creating
+a normal two-member MLS group for every such channel carries the full cost of an
+MLS ratchet tree, which can be restrictive, especially when using post-quantum
+ciphersuites.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document has two parts.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">The first part defines <code>mls_unsigned_private_message</code>, an MLS WireFormat that
+can be used in any MLS group that has negotiated support for the format.  It is
+the same encrypted framing as MLS PrivateMessage, except that the
+FramedContentAuthData signature is not transmitted and is not verified.  The
+format therefore authenticates that the sender is a member of the group, but it
+does not authenticate the sender identity indicated by the sender leaf index.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">The second part defines Opportunistic Channel Groups (OCGs).  An OCG is an MLS
+group with exactly two members, no ratchet tree, and a GroupContext that marks
+the group as an OCG using an MLS application component.  OCGs are bootstrapped
+through MLS targeted messages <span>[<a href="#I-D.ietf-mls-targeted-messages" class="cite xref">I-D.ietf-mls-targeted-messages</a>]</span> sent in an
+existing MLS group.  OCGs advance epochs only by committing PreSharedKey
+proposals that inject resumption PSKs from MLS groups shared by both members.<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1192,37 +1261,505 @@ svg :is([fill="white"], [fill^="#fff"]) {
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document uses the terminology and presentation language from <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">The notation <code>0</code> is used as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, namely an all-zero byte string of
+length <code>KDF.Nh</code> for the cipher suite in use.  When this document sets a
+<code>tree_hash</code> value to zero, the value is the all-zero byte string of length
+<code>KDF.Nh</code>.<a href="#section-2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="unsigned-private-messages">
+<section id="section-3">
+      <h2 id="name-unsigned-private-messages">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-unsigned-private-messages" class="section-name selfRef">Unsigned Private Messages</a>
+      </h2>
+<p id="section-3-1">This section defines a new MLS WireFormat that is independent of OCGs.  Any MLS
+group can use this WireFormat if all members support it.  When the MLS
+extensions negotiation mechanism is available, the sender advertises support
+with the <code>supported_wire_formats</code> LeafNode extension and the group requires
+support with the <code>required_wire_formats</code> GroupContext extension defined in
+<span>[<a href="#I-D.ietf-mls-extensions" class="cite xref">I-D.ietf-mls-extensions</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">All RFC 9420 validation rules for PrivateMessages to apply, except for
+validation of the omitted FramedContentAuthData signature as described below.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">The new WireFormat name is <code>mls_unsigned_private_message</code>.  Its content is an
+<code>UnsignedPrivateMessage</code>.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3-4">
+<pre>
+case mls_unsigned_private_message:
+    UnsignedPrivateMessage unsigned_private_message;
+</pre><a href="#section-3-4" class="pilcrow">¶</a>
+</div>
+<div id="format">
+<section id="section-3.1">
+        <h3 id="name-format">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-format" class="section-name selfRef">Format</a>
+        </h3>
+<p id="section-3.1-1"><code>UnsignedPrivateMessage</code> has the same outer fields as <code>PrivateMessage</code> in
+<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-2">
+<pre>
+struct {
+    opaque group_id&lt;V&gt;;
+    uint64 epoch;
+    ContentType content_type;
+    opaque authenticated_data&lt;V&gt;;
+    opaque encrypted_sender_data&lt;V&gt;;
+    opaque ciphertext&lt;V&gt;;
+} UnsignedPrivateMessage;
+</pre><a href="#section-3.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-3">The content encrypted in <code>ciphertext</code> is an <code>UnsignedPrivateMessageContent</code>.
+This structure carries the same content alternatives and padding rules as
+<code>PrivateMessageContent</code>, but omits the <code>signature</code> field from
+<code>FramedContentAuthData</code>.  Commits still carry a confirmation tag.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-4">
+<pre>
+struct {
+    select (UnsignedPrivateMessage.content_type) {
+        case application:
+          opaque application_data&lt;V&gt;;
+
+        case proposal:
+          Proposal proposal;
+
+        case commit:
+          Commit commit;
+    };
+
+    select (UnsignedPrivateMessage.content_type) {
+        case commit:
+            MAC confirmation_tag;
+        case application:
+        case proposal:
+            struct{};
+    };
+
+    opaque padding[length_of_padding];
+} UnsignedPrivateMessageContent;
+</pre><a href="#section-3.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-5">The <code>encrypted_sender_data</code> field is computed as in Section 6.3.2 of
+<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  The <code>SenderData</code> structure, sender data AAD, ciphertext sample,
+key derivation, nonce derivation, and sender data validation rules are
+unchanged.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">The content encryption uses the same AEAD keys, nonces, AAD, reuse guard, and
+padding rules as Section 6.3.1 of <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with
+<code>UnsignedPrivateMessageContent</code> in place of <code>PrivateMessageContent</code>.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.1-7">TODO: Decide whether we want a dedicated ratchet for unsigned private messages?<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="decoding">
+<section id="section-3.2">
+        <h3 id="name-decoding">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-decoding" class="section-name selfRef">Decoding</a>
+        </h3>
+<p id="section-3.2-1">After decrypting an <code>UnsignedPrivateMessage</code>, the receiver reconstructs the
+corresponding <code>FramedContent</code> from the outer message fields, decrypted sender
+data, and decrypted content, following the same construction used for
+<code>PrivateMessage</code> in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">For compatibility with RFC 9420 algorithms that consume an
+<code>AuthenticatedContent</code> value, an unsigned private message is represented as an
+<code>AuthenticatedContent</code> with:<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.2-3.1">
+            <p id="section-3.2-3.1.1"><code>wire_format</code> set to <code>mls_unsigned_private_message</code>.<a href="#section-3.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-3.2">
+            <p id="section-3.2-3.2.1"><code>content</code> set to the reconstructed <code>FramedContent</code>.<a href="#section-3.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-3.3">
+            <p id="section-3.2-3.3.1"><code>auth.signature</code> set to the zero-length octet string.<a href="#section-3.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-3.4">
+            <p id="section-3.2-3.4.1"><code>auth.confirmation_tag</code> set to the confirmation tag carried in the message,
+if the content type is <code>commit</code>.<a href="#section-3.2-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.2-4">Receivers <span class="bcp14">MUST NOT</span> verify a signature for an
+<code>mls_unsigned_private_message</code>.  Receivers <span class="bcp14">MUST</span> verify the confirmation tag for
+a Commit as described in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="transcript-hashes-and-proposal-references">
+<section id="section-3.3">
+        <h3 id="name-transcript-hashes-and-propo">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-transcript-hashes-and-propo" class="section-name selfRef">Transcript Hashes and Proposal References</a>
+        </h3>
+<p id="section-3.3-1">RFC 9420 computes transcript hashes and Proposal references over
+<code>AuthenticatedContent</code> objects.  Because this WireFormat does not carry a
+signature, this document defines the canonical <code>AuthenticatedContent</code>
+representation above.  Senders and receivers <span class="bcp14">MUST</span> use this representation in
+all RFC 9420 algorithms that consume an <code>AuthenticatedContent</code> value.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">For a Commit carried in <code>mls_unsigned_private_message</code>,
+<code>ConfirmedTranscriptHashInput.signature</code> is the zero-length octet string.  The
+other fields of <code>ConfirmedTranscriptHashInput</code> and
+<code>InterimTranscriptHashInput</code> are computed as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">For a Proposal carried in <code>mls_unsigned_private_message</code>, <code>MakeProposalRef</code> uses
+the encoded <code>AuthenticatedContent</code> representation with <code>auth.signature</code> set to
+the zero-length octet string.  This rule is necessary because, without it, two
+implementations could decrypt the same unsigned Proposal but hash different byte
+strings when producing a Proposal reference.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sender-authentication">
+<section id="section-3.4">
+        <h3 id="name-sender-authentication">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-sender-authentication" class="section-name selfRef">Sender Authentication</a>
+        </h3>
+<p id="section-3.4-1"><code>mls_unsigned_private_message</code> authenticates that the message was created by a
+party with access to the relevant MLS epoch secrets.  It does not authenticate
+which group member created the message.  Any group member that can derive the
+message protection keys for an epoch can construct a valid message that claims
+any non-blank member sender index in that epoch.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">Applications <span class="bcp14">MUST NOT</span> use this WireFormat when cryptographic sender
+authentication is required.  Applications that use this WireFormat <span class="bcp14">MUST</span> treat
+the sender index as a claimed sender index authenticated only by group
+membership.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="opportunistic-channel-groups">
+<section id="section-4">
+      <h2 id="name-opportunistic-channel-group">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-opportunistic-channel-group" class="section-name selfRef">Opportunistic Channel Groups</a>
+      </h2>
+<p id="section-4-1">An Opportunistic Channel Group is an MLS group variant with exactly two
+members.  OCGs use the MLS key schedule, transcript hashes, message protection,
+GroupContext, and PSK processing defined in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, except where this
+document explicitly changes those rules.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">An OCG has no ratchet tree.  Instead, the OCG has two virtual member positions
+with leaf indices 0 and 1.  The member that creates the OCG has OCG leaf index
+0.  The member that receives the bootstrap targeted message has OCG leaf index
+1.  These indices are used in the <code>SenderData.leaf_index</code> field of
+<code>mls_unsigned_private_message</code>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">OCG messages <span class="bcp14">MUST</span> be encoded as <code>mls_unsigned_private_message</code>.  A receiver
+<span class="bcp14">MUST</span> reject an OCG message with any other WireFormat.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<div id="ocg-marker-component">
+<section id="section-4.1">
+        <h3 id="name-ocg-marker-component">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-ocg-marker-component" class="section-name selfRef">OCG Marker Component</a>
+        </h3>
+<p id="section-4.1-1">An OCG is identified by the presence of an <code>opportunistic_channel</code> application
+component in the <code>app_data_dictionary</code> GroupContext extension defined in
+<span>[<a href="#I-D.ietf-mls-extensions" class="cite xref">I-D.ietf-mls-extensions</a>]</span>.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-2">
+<pre>
+struct {
+} OpportunisticChannel;
+</pre><a href="#section-4.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-3">The OCG ComponentID is <code>0x0008</code>.  The <code>opportunistic_channel</code> component <span class="bcp14">MUST</span>
+appear only in GroupContext objects.  Its presence marks the group as an OCG.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ocg-group-state">
+<section id="section-4.2">
+        <h3 id="name-ocg-group-state">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-ocg-group-state" class="section-name selfRef">OCG Group State</a>
+        </h3>
+<p id="section-4.2-1">An OCG member maintains the following state:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2-2.1">
+            <p id="section-4.2-2.1.1">A GroupContext.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">The MLS epoch secrets derived as part of the MLS key schedule.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.3">
+            <p id="section-4.2-2.3.1">A secret tree with exactly two leaves, indexed 0 and 1.<a href="#section-4.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.4">
+            <p id="section-4.2-2.4.1">The transcript hashes defined in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-4.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.5">
+            <p id="section-4.2-2.5.1">A capability source for each OCG member, as defined in <a href="#capabilities" class="auto internal xref">Section 4.5</a>.<a href="#section-4.2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.2-3">An OCG does not maintain a RatchetTree.  The <code>tree_hash</code> field of the
+GroupContext <span class="bcp14">MUST</span> be set to <code>0</code> in every epoch.  A receiver <span class="bcp14">MUST</span> reject an OCG
+GroupContext whose <code>tree_hash</code> is not the all-zero byte string of length
+<code>KDF.Nh</code>.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">The <code>commit_secret</code> input to the MLS key schedule <span class="bcp14">MUST</span> be <code>0</code> for every OCG
+epoch transition.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">OCGs do not support adding, removing, or updating members.  An OCG always has
+exactly two members.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="bootstrapping">
+<section id="section-4.3">
+        <h3 id="name-bootstrapping">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-bootstrapping" class="section-name selfRef">Bootstrapping</a>
+        </h3>
+<p id="section-4.3-1">An OCG is bootstrapped from an existing MLS group, called the bootstrap source
+group.  The bootstrap source group <span class="bcp14">MUST</span> contain both OCG members in the epoch
+used for bootstrapping.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">The OCG creator sends an MLS targeted message to the other OCG member in the
+bootstrap source group.  The targeted message <code>application_data</code> field <span class="bcp14">MUST</span>
+contain an <code>OCGBootstrap</code> value.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-3">
+<pre>
+struct {
+    GroupContext group_context;
+    Extension extensions&lt;V&gt;;
+    MAC confirmation_tag;
+} UnsignedGroupInfo;
+
+struct {
+    opaque joiner_secret&lt;V&gt;;
+    UnsignedGroupInfo group_info;
+} OCGBootstrap;
+</pre><a href="#section-4.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-4"><code>joiner_secret</code> <span class="bcp14">MUST</span> be a fresh random byte string of length <code>KDF.Nh</code> for the
+OCG cipher suite.  The OCG cipher suite <span class="bcp14">MUST</span> be the cipher suite of the
+bootstrap source group.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">TODO: Maybe generate <code>joiner_secret</code> from the target message HPKE context.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3-6">The <code>UnsignedGroupInfo</code> structure is the OCG analogue of the <code>GroupInfo</code>
+structure in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, without the <code>signer</code> and <code>signature</code> fields.  The
+integrity and sender authentication of this object are provided by the targeted
+message in the bootstrap source group.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.3-7">The OCG GroupContext in the bootstrap message <span class="bcp14">MUST</span> have:<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3-8.1">
+            <p id="section-4.3-8.1.1"><code>version</code> set to <code>mls10</code>.<a href="#section-4.3-8.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-8.2">
+            <p id="section-4.3-8.2.1"><code>cipher_suite</code> set to the cipher suite of the bootstrap source group.<a href="#section-4.3-8.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-8.3">
+            <p id="section-4.3-8.3.1"><code>epoch</code> set to 0.<a href="#section-4.3-8.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-8.4">
+            <p id="section-4.3-8.4.1"><code>tree_hash</code> set to <code>0</code>.<a href="#section-4.3-8.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-8.5">
+            <p id="section-4.3-8.5.1"><code>confirmed_transcript_hash</code> set to the zero-length octet string.<a href="#section-4.3-8.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-8.6">
+            <p id="section-4.3-8.6.1"><code>extensions</code> containing the <code>opportunistic_channel</code> component.<a href="#section-4.3-8.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-8.7">
+            <p id="section-4.3-8.7.1"><code>extensions</code> containing a <code>required_wire_formats</code> extension that requires
+<code>mls_unsigned_private_message</code>.<a href="#section-4.3-8.7.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.3-9">The <code>UnsignedGroupInfo.extensions</code> field <span class="bcp14">MUST NOT</span> contain a <code>ratchet_tree</code>
+extension.  OCG bootstrap does not use any RatchetTre, or GroupInfo signature
+validation steps from <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-4.3-9" class="pilcrow">¶</a></p>
+<p id="section-4.3-10">The creator derives the OCG epoch 0 secrets from <code>joiner_secret</code> using the epoch
+secret derivation that Welcome processing uses after GroupInfo decryption in
+<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  The PSK list is empty, so <code>psk_secret</code> is <code>0</code>.  The
+<code>joiner_secret</code> value from <code>OCGBootstrap</code> is used directly as the epoch 0
+<code>joiner_secret</code>. The two-leaf OCG secret tree is derived from the resulting
+<code>encryption_secret</code> as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with leaf 0 corresponding to the
+bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
+creator computes the epoch 0 confirmation tag over the zero-length confirmed
+transcript hash and includes it in <code>UnsignedGroupInfo.confirmation_tag</code>.<a href="#section-4.3-10" class="pilcrow">¶</a></p>
+<p id="section-4.3-11">The recipient processes the targeted message according to
+<span>[<a href="#I-D.ietf-mls-targeted-messages" class="cite xref">I-D.ietf-mls-targeted-messages</a>]</span>.  The recipient then validates the
+<code>OCGBootstrap</code> value, verifies that the OCG <code>group_id</code> is not already in use by
+one of the recipient's MLS groups, derives the epoch 0 secrets from
+<code>joiner_secret</code>, and verifies <code>UnsignedGroupInfo.confirmation_tag</code>.  If any
+validation step fails, the recipient <span class="bcp14">MUST</span> reject the bootstrap message and <span class="bcp14">MUST NOT</span> create the OCG state.<a href="#section-4.3-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="proposals-and-commits">
+<section id="section-4.4">
+        <h3 id="name-proposals-and-commits">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-proposals-and-commits" class="section-name selfRef">Proposals and Commits</a>
+        </h3>
+<p id="section-4.4-1">The only proposal type allowed in an OCG is <code>psk</code>.  A receiver <span class="bcp14">MUST</span> reject an
+OCG Proposal containing any other proposal type.  After resolving all proposal
+references in an OCG Commit, a receiver <span class="bcp14">MUST</span> reject the Commit if any resolved
+proposal is not a PreSharedKey proposal.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">TODO: Maybe allow other proposal types, Application content proposals may be
+good to allow.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">An OCG Commit <span class="bcp14">MUST</span> contain at least one PreSharedKey proposal.  A receiver <span class="bcp14">MUST</span>
+reject an OCG Commit whose <code>proposals</code> vector is empty.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-4">An OCG Commit <span class="bcp14">MUST NOT</span> contain an UpdatePath.  A receiver <span class="bcp14">MUST</span> reject an OCG
+Commit whose <code>path</code> field is populated.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<p id="section-4.4-5">Every PreSharedKey proposal in an OCG Commit <span class="bcp14">MUST</span> identify a resumption PSK
+whose <code>usage</code> is <code>application</code>.  The <code>psk_group_id</code> and <code>psk_epoch</code> fields
+identify the source group and source group epoch.  The referenced source group
+epoch <span class="bcp14">MUST</span> contain both OCG members, and both OCG members <span class="bcp14">MUST</span> be able to
+authenticate the source group state according to their application policy.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
+<p id="section-4.4-6">When creating or processing an OCG Commit, the proposal list is applied as in
+<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with all tree operations omitted.  The new GroupContext is derived
+from the old GroupContext by incrementing the epoch, setting <code>tree_hash</code> to
+<code>0</code>, preserving the GroupContext extensions, and updating the transcript hash
+as defined for <code>mls_unsigned_private_message</code>.<a href="#section-4.4-6" class="pilcrow">¶</a></p>
+<p id="section-4.4-7">The <code>psk_secret</code> is derived from the committed PreSharedKey proposals as in
+<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  The <code>commit_secret</code> is <code>0</code>.  The new epoch secrets are then
+derived with the MLS key schedule using the new GroupContext, <code>psk_secret</code>, and
+<code>commit_secret</code>.<a href="#section-4.4-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="capabilities">
+<section id="section-4.5">
+        <h3 id="name-capabilities">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-capabilities" class="section-name selfRef">Capabilities</a>
+        </h3>
+<p id="section-4.5-1">OCGs have no RatchetTree and therefore do not have OCG-local LeafNodes from
+which capabilities and capability negotiation extensions can be read.  Instead,
+each OCG member has a capability source.  A capability source identifies a
+source group, a source group epoch, the GroupContext for that source group
+epoch, and the LeafNode that represents the OCG member in that source group
+epoch.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">The inherited capability state for an OCG member consists of the following
+values from the capability source:<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.5-3.1">
+            <p id="section-4.5-3.1.1">The <code>capabilities</code> field of the source LeafNode.<a href="#section-4.5-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.5-3.2">
+            <p id="section-4.5-3.2.1">The <code>supported_wire_formats</code> extension in the source LeafNode, if present.<a href="#section-4.5-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.5-3.3">
+            <p id="section-4.5-3.3.1">The <code>required_wire_formats</code> extension in the source GroupContext, if present.
+A WireFormat required by the source GroupContext is treated as supported by
+every member represented in that source group epoch.<a href="#section-4.5-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.5-3.4">
+            <p id="section-4.5-3.4.1">The <code>app_data_dictionary</code> extension in the source LeafNode, if present, with
+the components that have support semantics in <span>[<a href="#I-D.ietf-mls-extensions" class="cite xref">I-D.ietf-mls-extensions</a>]</span>.
+This includes <code>safe_aad</code>, <code>app_components</code>, and <code>content_media_types</code>.<a href="#section-4.5-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.5-3.5">
+            <p id="section-4.5-3.5.1">The <code>app_data_dictionary</code> extension in the source GroupContext, if present,
+with the same support-semantic components.  Values required by the source
+GroupContext are treated as supported by every member represented in that
+source group epoch.<a href="#section-4.5-3.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.5-4">From OCG creation until the first OCG Commit, the capability source for both
+members is the LeafNode for that member in the bootstrap source group and epoch.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+<p id="section-4.5-5">After an OCG Commit is accepted, the capability source for the Commit sender is
+the LeafNode for that member in the source group and epoch identified by the
+first PreSharedKey proposal in the Commit's resolved proposal list.  The
+capability source for the other member is unchanged.<a href="#section-4.5-5" class="pilcrow">¶</a></p>
+<p id="section-4.5-6">When an OCG member evaluates whether the peer supports an extension, proposal
+type, credential type, cipher suite, WireFormat, component, or media type, it
+<span class="bcp14">MUST</span> use the peer's current inherited capability state.<a href="#section-4.5-6" class="pilcrow">¶</a></p>
+<p id="section-4.5-7">An OCG member <span class="bcp14">MUST</span> ignore unknown values in inherited capability negotiation
+extensions according to <span>[<a href="#I-D.ietf-mls-extensions" class="cite xref">I-D.ietf-mls-extensions</a>]</span>.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="security-considerations">
-<section id="section-3">
+<section id="section-5">
       <h2 id="name-security-considerations">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-3-1">TODO Security<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">The <code>mls_unsigned_private_message</code> WireFormat intentionally removes MLS sender
+signatures.  It provides confidentiality and group membership authentication
+for message contents, but it does not provide sender authentication.  The
+sender leaf index is a claim made by a party with access to the MLS epoch
+secrets.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">In any group using <code>mls_unsigned_private_message</code>, a malicious member can forge
+messages that appear to come from another member.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">This property has a key-compromise impersonation consequence in two-party
+groups.  If Alice's OCG state is compromised, an attacker can use Alice's copy
+of the epoch secrets to send Alice a valid OCG message that claims Bob's sender
+index.  Alice can verify only that the message was produced with OCG epoch
+secrets.  Alice cannot verify that Bob produced it.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">The same property creates a sender-ratchet denial of service risk.  An attacker
+that has compromised a member's OCG state can create messages under the other
+member's sender index and advance the receiver's view of that sender's message
+ratchet.  This can cause later honest messages from that sender to be rejected
+as reused or out of order.  Applications using OCGs need a recovery strategy,
+such as committing a fresh shared PSK from a source group or recreating the OCG.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-5-5">OCGs do not use UpdatePaths.  As a result, OCG Commits do not provide the
+post-compromise security properties that RFC 9420 obtains from fresh path
+secrets in a RatchetTree.  Injecting PSKs from MLS groups shared by both OCG
+members can provide a weaker form of post-compromise security for OCG epoch
+secrets.  This weaker property holds only if the source group epoch provides a
+resumption PSK unknown to the attacker and the attacker cannot prevent both
+members from accepting the OCG Commit.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<p id="section-5-6">The OCG bootstrap relies on the security properties of MLS targeted messages.
+The unsigned GroupInfo in the bootstrap message is authenticated by the
+targeted message from the bootstrap source group.  A recipient <span class="bcp14">MUST</span> complete
+targeted message validation before processing the embedded <code>OCGBootstrap</code>
+value.<a href="#section-5-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-4">
+<section id="section-6">
       <h2 id="name-iana-considerations">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-4-1">This document has no IANA actions.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-6-1">This document requests the following registration in the "MLS Wire Formats"
+registry:<a href="#section-6-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+        <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Value</th>
+            <th class="text-left" rowspan="1" colspan="1">Name</th>
+            <th class="text-left" rowspan="1" colspan="1">Recommended</th>
+            <th class="text-left" rowspan="1" colspan="1">Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">0x0007</td>
+            <td class="text-left" rowspan="1" colspan="1">mls_unsigned_private_message</td>
+            <td class="text-left" rowspan="1" colspan="1">N</td>
+            <td class="text-left" rowspan="1" colspan="1">RFCXXXX</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-6-3">This document requests the following registration in the "MLS Component Types"
+registry defined by <span>[<a href="#I-D.ietf-mls-extensions" class="cite xref">I-D.ietf-mls-extensions</a>]</span>:<a href="#section-6-3" class="pilcrow">¶</a></p>
+<table class="center" id="table-2">
+        <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Value</th>
+            <th class="text-left" rowspan="1" colspan="1">Name</th>
+            <th class="text-left" rowspan="1" colspan="1">Where</th>
+            <th class="text-left" rowspan="1" colspan="1">Recommended</th>
+            <th class="text-left" rowspan="1" colspan="1">Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">0x0008</td>
+            <td class="text-left" rowspan="1" colspan="1">opportunistic_channel</td>
+            <td class="text-left" rowspan="1" colspan="1">GC</td>
+            <td class="text-left" rowspan="1" colspan="1">N</td>
+            <td class="text-left" rowspan="1" colspan="1">RFCXXXX</td>
+          </tr>
+        </tbody>
+      </table>
 </section>
 </div>
 <div id="sec-normative-references">
-<section id="section-5">
+<section id="section-7">
       <h2 id="name-normative-references">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
       </h2>
 <dl class="references">
+<dt id="I-D.ietf-mls-extensions">[I-D.ietf-mls-extensions]</dt>
+      <dd>
+<span class="refAuthor">Robert, R.</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Extensions"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-extensions-09</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-09">https://datatracker.ietf.org/doc/html/draft-ietf-mls-extensions-09</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-mls-targeted-messages">[I-D.ietf-mls-targeted-messages]</dt>
+      <dd>
+<span class="refAuthor">Robert, R.</span>, <span class="refTitle">"Messaging Layer Security (MLS) Targeted Messages"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-mls-targeted-messages-00</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mls-targeted-messages-00">https://datatracker.ietf.org/doc/html/draft-ietf-mls-targeted-messages-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
       <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-    <dd>
+      <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9420">[RFC9420]</dt>
+    <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Millican, J.</span>, <span class="refAuthor">Omara, E.</span>, and <span class="refAuthor">K. Cohn-Gordon</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Protocol"</span>, <span class="seriesInfo">RFC 9420</span>, <span class="seriesInfo">DOI 10.17487/RFC9420</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9420">https://www.rfc-editor.org/rfc/rfc9420</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
