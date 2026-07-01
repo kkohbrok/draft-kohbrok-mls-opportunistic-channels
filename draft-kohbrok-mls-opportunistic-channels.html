@@ -16,22 +16,23 @@ Groups, a two-member MLS group variant that is bootstrapped from an existing
 MLS group using an MLS targeted message and evolves only by injecting PSKs from
 MLS groups shared by both members. 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="messaging" name="keyword">
 <meta content="draft-kohbrok-mls-opportunistic-channels-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.8.1
 -->
 <link href="draft-kohbrok-mls-opportunistic-channels.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -298,16 +299,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -327,10 +331,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -341,59 +345,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -431,26 +435,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -466,20 +469,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -515,9 +520,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -527,17 +532,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -587,25 +594,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -625,13 +624,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -642,18 +634,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -712,9 +702,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -804,23 +794,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -831,19 +825,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -864,54 +860,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -930,26 +926,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -965,12 +961,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1032,17 +1029,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1052,11 +1051,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">OMC</td>
-<td class="right">May 2026</td>
+<td class="right">July 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kohbrok &amp; Robert</td>
-<td class="center">Expires 22 November 2026</td>
+<td class="center">Expires 2 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1068,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-kohbrok-mls-opportunistic-channels-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-21" class="published">21 May 2026</time>
+<time datetime="2026-07-01" class="published">1 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-22">22 November 2026</time></dd>
+<dd class="expires"><time datetime="2027-01-02">2 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1134,7 +1133,7 @@ MLS groups shared by both members.<a href="#section-abstract-1" class="pilcrow">
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1262,10 +1261,6 @@ proposals that inject resumption PSKs from MLS groups shared by both members.<a 
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">This document uses the terminology and presentation language from <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">The notation <code>0</code> is used as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, namely an all-zero byte string of
-length <code>KDF.Nh</code> for the cipher suite in use.  When this document sets a
-<code>tree_hash</code> value to zero, the value is the all-zero byte string of length
-<code>KDF.Nh</code>.<a href="#section-2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="unsigned-private-messages">
@@ -1477,11 +1472,11 @@ appear only in GroupContext objects.  Its presence marks the group as an OCG.<a 
 </li>
         </ul>
 <p id="section-4.2-3">An OCG does not maintain a RatchetTree.  The <code>tree_hash</code> field of the
-GroupContext <span class="bcp14">MUST</span> be set to <code>0</code> in every epoch.  A receiver <span class="bcp14">MUST</span> reject an OCG
-GroupContext whose <code>tree_hash</code> is not the all-zero byte string of length
-<code>KDF.Nh</code>.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">The <code>commit_secret</code> input to the MLS key schedule <span class="bcp14">MUST</span> be <code>0</code> for every OCG
-epoch transition.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+GroupContext <span class="bcp14">MUST</span> be set to the zero-length octet string in every epoch.  A
+receiver <span class="bcp14">MUST</span> reject an OCG GroupContext whose <code>tree_hash</code> is not the
+zero-length octet string.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">The <code>commit_secret</code> input to the MLS key schedule <span class="bcp14">MUST</span> be the zero-length octet
+string for every OCG epoch transition.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 <p id="section-4.2-5">OCGs do not support adding, removing, or updating members.  An OCG always has
 exactly two members.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 </section>
@@ -1531,7 +1526,7 @@ message in the bootstrap source group.<a href="#section-4.3-6" class="pilcrow">�
             <p id="section-4.3-8.3.1"><code>epoch</code> set to 0.<a href="#section-4.3-8.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.3-8.4">
-            <p id="section-4.3-8.4.1"><code>tree_hash</code> set to <code>0</code>.<a href="#section-4.3-8.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.3-8.4.1"><code>tree_hash</code> set to the zero-length octet string.<a href="#section-4.3-8.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.3-8.5">
             <p id="section-4.3-8.5.1"><code>confirmed_transcript_hash</code> set to the zero-length octet string.<a href="#section-4.3-8.5.1" class="pilcrow">¶</a></p>
@@ -1549,11 +1544,11 @@ extension.  OCG bootstrap does not use any RatchetTre, or GroupInfo signature
 validation steps from <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-4.3-9" class="pilcrow">¶</a></p>
 <p id="section-4.3-10">The creator derives the OCG epoch 0 secrets from <code>joiner_secret</code> using the epoch
 secret derivation that Welcome processing uses after GroupInfo decryption in
-<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  The PSK list is empty, so <code>psk_secret</code> is <code>0</code>.  The
-<code>joiner_secret</code> value from <code>OCGBootstrap</code> is used directly as the epoch 0
-<code>joiner_secret</code>. The two-leaf OCG secret tree is derived from the resulting
-<code>encryption_secret</code> as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with leaf 0 corresponding to the
-bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
+<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  The PSK list is empty, so <code>psk_secret</code> is the zero-length octet
+string.  The <code>joiner_secret</code> value from <code>OCGBootstrap</code> is used directly as the
+epoch 0 <code>joiner_secret</code>.  The two-leaf OCG secret tree is derived from the
+resulting <code>encryption_secret</code> as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with leaf 0 corresponding to
+the bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
 creator computes the epoch 0 confirmation tag over the zero-length confirmed
 transcript hash and includes it in <code>UnsignedGroupInfo.confirmation_tag</code>.<a href="#section-4.3-10" class="pilcrow">¶</a></p>
 <p id="section-4.3-11">The recipient processes the targeted message according to
@@ -1569,30 +1564,28 @@ validation step fails, the recipient <span class="bcp14">MUST</span> reject the 
         <h3 id="name-proposals-and-commits">
 <a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-proposals-and-commits" class="section-name selfRef">Proposals and Commits</a>
         </h3>
-<p id="section-4.4-1">The only proposal type allowed in an OCG is <code>psk</code>.  A receiver <span class="bcp14">MUST</span> reject an
-OCG Proposal containing any other proposal type.  After resolving all proposal
-references in an OCG Commit, a receiver <span class="bcp14">MUST</span> reject the Commit if any resolved
-proposal is not a PreSharedKey proposal.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
-<p id="section-4.4-2">TODO: Maybe allow other proposal types, Application content proposals may be
-good to allow.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
-<p id="section-4.4-3">An OCG Commit <span class="bcp14">MUST</span> contain at least one PreSharedKey proposal.  A receiver <span class="bcp14">MUST</span>
-reject an OCG Commit whose <code>proposals</code> vector is empty.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
-<p id="section-4.4-4">An OCG Commit <span class="bcp14">MUST NOT</span> contain an UpdatePath.  A receiver <span class="bcp14">MUST</span> reject an OCG
-Commit whose <code>path</code> field is populated.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
-<p id="section-4.4-5">Every PreSharedKey proposal in an OCG Commit <span class="bcp14">MUST</span> identify a resumption PSK
-whose <code>usage</code> is <code>application</code>.  The <code>psk_group_id</code> and <code>psk_epoch</code> fields
-identify the source group and source group epoch.  The referenced source group
-epoch <span class="bcp14">MUST</span> contain both OCG members, and both OCG members <span class="bcp14">MUST</span> be able to
-authenticate the source group state according to their application policy.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
-<p id="section-4.4-6">When creating or processing an OCG Commit, the proposal list is applied as in
-<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with all tree operations omitted.  The new GroupContext is derived
-from the old GroupContext by incrementing the epoch, setting <code>tree_hash</code> to
-<code>0</code>, preserving the GroupContext extensions, and updating the transcript hash
-as defined for <code>mls_unsigned_private_message</code>.<a href="#section-4.4-6" class="pilcrow">¶</a></p>
-<p id="section-4.4-7">The <code>psk_secret</code> is derived from the committed PreSharedKey proposals as in
-<span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.  The <code>commit_secret</code> is <code>0</code>.  The new epoch secrets are then
-derived with the MLS key schedule using the new GroupContext, <code>psk_secret</code>, and
-<code>commit_secret</code>.<a href="#section-4.4-7" class="pilcrow">¶</a></p>
+<p id="section-4.4-1">Proposals and commits are created and processed as in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span> with the
+following exceptions:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-2.1">
+            <p id="section-4.4-2.1.1">Any proposals that require an update path or that have semantics that affect
+or require the ratchet tree are disallowed and <span class="bcp14">MUST NOT</span> be used. A recipient
+of a Commit in an OCG that includes such a proposal (either by value or by
+reference) <span class="bcp14">MUST</span> reject that Commit.<a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-2.2">
+            <p id="section-4.4-2.2.1"><code>tree_hash</code> is set to the zero-length octet string when updating the
+GroupContext.<a href="#section-4.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-2.3">
+            <p id="section-4.4-2.3.1">The <code>commit_secret</code> is the zero-length octet string when computing the key
+schedule.<a href="#section-4.4-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-3">The restrictions around proposals are due to the lack of a ratchet tree in OCGs.
+To achieve PCS, group members should use PSK proposals that inject a
+<code>usage=application</code> resumption PSK from a group that contains both OCG members.
+The referenced source group epoch <span class="bcp14">MUST</span> contain both OCG members.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="capabilities">
