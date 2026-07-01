@@ -348,36 +348,22 @@ NOT create the OCG state.
 
 ## Proposals and Commits
 
-The only proposal type allowed in an OCG is `psk`.  A receiver MUST reject an
-OCG Proposal containing any other proposal type.  After resolving all proposal
-references in an OCG Commit, a receiver MUST reject the Commit if any resolved
-proposal is not a PreSharedKey proposal.
+Proposals and commits are created and processed as in {{RFC9420}} with the
+following exceptions:
 
-TODO: Maybe allow other proposal types, Application content proposals may be
-good to allow.
+- Any proposals that require an update path or that have semantics that affect
+  or require the ratchet tree are disallowed and MUST NOT be used. A recipient
+  of a Commit in an OCG that includes such a proposal (either by value or by
+  reference) MUST reject that Commit.
+- `tree_hash` is set to the zero-length octet string when updating the
+  GroupContext.
+- The `commit_secret` is the zero-length octet string when computing the key
+  schedule.
 
-An OCG Commit MUST contain at least one PreSharedKey proposal.  A receiver MUST
-reject an OCG Commit whose `proposals` vector is empty.
-
-An OCG Commit MUST NOT contain an UpdatePath.  A receiver MUST reject an OCG
-Commit whose `path` field is populated.
-
-Every PreSharedKey proposal in an OCG Commit MUST identify a resumption PSK
-whose `usage` is `application`.  The `psk_group_id` and `psk_epoch` fields
-identify the source group and source group epoch.  The referenced source group
-epoch MUST contain both OCG members, and both OCG members MUST be able to
-authenticate the source group state according to their application policy.
-
-When creating or processing an OCG Commit, the proposal list is applied as in
-{{RFC9420}}, with all tree operations omitted.  The new GroupContext is derived
-from the old GroupContext by incrementing the epoch, setting `tree_hash` to
-the zero-length octet string, preserving the GroupContext extensions, and
-updating the transcript hash as defined for `mls_unsigned_private_message`.
-
-The `psk_secret` is derived from the committed PreSharedKey proposals as in
-{{RFC9420}}.  The `commit_secret` is the zero-length octet string.  The new
-epoch secrets are then derived with the MLS key schedule using the new
-GroupContext, `psk_secret`, and `commit_secret`.
+The restrictions around proposals are due to the lack of a ratchet tree in OCGs.
+To achieve PCS, group members should use PSK proposals that inject a
+`usage=application` resumption PSK from a group that contains both OCG members.
+The referenced source group epoch MUST contain both OCG members.
 
 ## Capabilities {#capabilities}
 
