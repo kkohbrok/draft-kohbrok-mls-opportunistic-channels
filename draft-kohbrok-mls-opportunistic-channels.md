@@ -85,11 +85,6 @@ proposals that inject resumption PSKs from MLS groups shared by both members.
 
 This document uses the terminology and presentation language from {{RFC9420}}.
 
-The notation `0` is used as in {{RFC9420}}, namely an all-zero byte string of
-length `KDF.Nh` for the cipher suite in use.  When this document sets a
-`tree_hash` value to zero, the value is the all-zero byte string of length
-`KDF.Nh`.
-
 # Unsigned Private Messages
 
 This section defines a new MLS WireFormat that is independent of OCGs.  Any MLS
@@ -268,12 +263,12 @@ An OCG member maintains the following state:
 * A capability source for each OCG member, as defined in {{capabilities}}.
 
 An OCG does not maintain a RatchetTree.  The `tree_hash` field of the
-GroupContext MUST be set to `0` in every epoch.  A receiver MUST reject an OCG
-GroupContext whose `tree_hash` is not the all-zero byte string of length
-`KDF.Nh`.
+GroupContext MUST be set to the zero-length octet string in every epoch.  A
+receiver MUST reject an OCG GroupContext whose `tree_hash` is not the
+zero-length octet string.
 
-The `commit_secret` input to the MLS key schedule MUST be `0` for every OCG
-epoch transition.
+The `commit_secret` input to the MLS key schedule MUST be the zero-length octet
+string for every OCG epoch transition.
 
 OCGs do not support adding, removing, or updating members.  An OCG always has
 exactly two members.
@@ -320,7 +315,7 @@ The OCG GroupContext in the bootstrap message MUST have:
 
 * `epoch` set to 0.
 
-* `tree_hash` set to `0`.
+* `tree_hash` set to the zero-length octet string.
 
 * `confirmed_transcript_hash` set to the zero-length octet string.
 
@@ -335,11 +330,11 @@ validation steps from {{RFC9420}}.
 
 The creator derives the OCG epoch 0 secrets from `joiner_secret` using the epoch
 secret derivation that Welcome processing uses after GroupInfo decryption in
-{{RFC9420}}.  The PSK list is empty, so `psk_secret` is `0`.  The
-`joiner_secret` value from `OCGBootstrap` is used directly as the epoch 0
-`joiner_secret`. The two-leaf OCG secret tree is derived from the resulting
-`encryption_secret` as in {{RFC9420}}, with leaf 0 corresponding to the
-bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
+{{RFC9420}}.  The PSK list is empty, so `psk_secret` is the zero-length octet
+string.  The `joiner_secret` value from `OCGBootstrap` is used directly as the
+epoch 0 `joiner_secret`.  The two-leaf OCG secret tree is derived from the
+resulting `encryption_secret` as in {{RFC9420}}, with leaf 0 corresponding to
+the bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
 creator computes the epoch 0 confirmation tag over the zero-length confirmed
 transcript hash and includes it in `UnsignedGroupInfo.confirmation_tag`.
 
@@ -376,13 +371,13 @@ authenticate the source group state according to their application policy.
 When creating or processing an OCG Commit, the proposal list is applied as in
 {{RFC9420}}, with all tree operations omitted.  The new GroupContext is derived
 from the old GroupContext by incrementing the epoch, setting `tree_hash` to
-`0`, preserving the GroupContext extensions, and updating the transcript hash
-as defined for `mls_unsigned_private_message`.
+the zero-length octet string, preserving the GroupContext extensions, and
+updating the transcript hash as defined for `mls_unsigned_private_message`.
 
 The `psk_secret` is derived from the committed PreSharedKey proposals as in
-{{RFC9420}}.  The `commit_secret` is `0`.  The new epoch secrets are then
-derived with the MLS key schedule using the new GroupContext, `psk_secret`, and
-`commit_secret`.
+{{RFC9420}}.  The `commit_secret` is the zero-length octet string.  The new
+epoch secrets are then derived with the MLS key schedule using the new
+GroupContext, `psk_secret`, and `commit_secret`.
 
 ## Capabilities {#capabilities}
 
