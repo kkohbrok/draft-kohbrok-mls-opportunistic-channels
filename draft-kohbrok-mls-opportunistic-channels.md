@@ -102,14 +102,9 @@ GroupContext, and PSK processing defined in {{RFC9420}}, except where this
 document explicitly changes those rules.
 
 An OC has no ratchet tree.  Instead, the OC has two virtual member positions
-with leaf indices 0 and 1.  The member that creates the OC has OC leaf index
-0.  The member that receives the bootstrap targeted message
-({{I-D.ietf-mls-targeted-messages}}) has OC leaf index
-1.  These indices are used in the `SenderData.leaf_index` field of
-`mls_unsigned_private_message` (see {{unsigned-messages}}).
-
-OC messages MUST be encoded as `mls_unsigned_private_message`.  A receiver
-MUST reject an OC message with any other WireFormat.
+with leaf indices 0 and 1.  The member that creates the OC has OC leaf index 0.
+The member that receives the bootstrap targeted message
+({{I-D.ietf-mls-targeted-messages}}) has OC leaf index 1.
 
 ## OC Marker Component
 
@@ -195,10 +190,8 @@ The OC GroupContext in the bootstrap message MUST have:
 
 * `confirmed_transcript_hash` set to the zero-length octet string.
 
-* `extensions` containing the `opportunistic_channel` component.
-
-* `extensions` containing a `required_wire_formats` extension that requires
-  `mls_unsigned_private_message`.
+* `extensions` containing the `opportunistic_channel` component and
+  `required_wire_formats` extension
 
 The `UnsignedGroupInfo.extensions` field MUST NOT contain a `ratchet_tree`
 extension.  OC bootstrap does not use the ratchet tree or GroupInfo signature
