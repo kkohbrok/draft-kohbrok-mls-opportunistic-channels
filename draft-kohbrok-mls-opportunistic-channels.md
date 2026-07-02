@@ -175,7 +175,7 @@ struct {
 OC cipher suite.  The OC cipher suite MUST be the cipher suite of the
 bootstrap source group.
 
-TODO: Maybe generate `joiner_secret` from the target message HPKE context.
+OPEN QUESTION: Maybe generate `joiner_secret` from the target message HPKE context.
 
 The `UnsignedGroupInfo` structure is the OC analogue of the `GroupInfo`
 structure in {{RFC9420}}, without the `signer` and `signature` fields.  The
@@ -427,7 +427,7 @@ The content encryption uses the same AEAD keys, nonces, AAD, reuse guard, and
 padding rules as Section 6.3.1 of {{RFC9420}}, with
 `UnsignedPrivateMessageContent` in place of `PrivateMessageContent`.
 
-TODO: Decide whether we want a dedicated ratchet for unsigned private messages?
+OPEN QUESTION: Decide whether we want a dedicated ratchet for unsigned private messages?
 
 ### Decoding
 
