@@ -31,14 +31,6 @@ author:
     organization: Phoenix R&D
     email: ietf@raphaelrobert.com
 
-normative:
-  RFC9420:
-  I-D.ietf-mls-extensions:
-  I-D.ietf-mls-targeted-messages:
-
-informative:
-  RFC9750:
-
 ...
 
 --- abstract
@@ -61,7 +53,7 @@ of opportunistic channels and can be used in regular MLS groups.
 
 # Introduction
 
-MLS {{RFC9420}} provides authenticated group key agreement, encrypted
+MLS {{!RFC9420}} provides authenticated group key agreement, encrypted
 application messages, and group evolution with forward secrecy and
 post-compromise security.  Some applications need a light-weight encrypted
 channel between two members who already share at least one MLS group, for
@@ -76,7 +68,7 @@ This document has two parts.
 The first part defines Opportunistic Channels (OCs).  An OC is an MLS group with
 exactly two members, no ratchet tree, and a GroupContext that marks the group as
 an OC using an MLS application component.  OCs are bootstrapped through MLS
-targeted messages {{I-D.ietf-mls-targeted-messages}} sent in an existing MLS
+targeted messages {{!I-D.ietf-mls-targeted-messages}} sent in an existing MLS
 group.  OCs achieve post-compromise security by committing PreSharedKey
 proposals that inject resumption PSKs from MLS groups shared by both members.
 
@@ -92,13 +84,13 @@ authenticate the sender identity indicated by the sender leaf index.
 
 {::boilerplate bcp14-tagged}
 
-This document uses the terminology and presentation language from {{RFC9420}}.
+This document uses the terminology and presentation language from {{!RFC9420}}.
 
 # Opportunistic Channels
 
 An Opportunistic Channel is an MLS group variant with exactly two
 members.  OCs use the MLS key schedule, transcript hashes, message protection,
-GroupContext, and PSK processing defined in {{RFC9420}}, except where this
+GroupContext, and PSK processing defined in {{!RFC9420}}, except where this
 document explicitly changes those rules.
 
 An OC has no ratchet tree.  Instead, the OC has two virtual member positions
@@ -110,9 +102,9 @@ The member that receives the bootstrap targeted message
 
 An OC is identified by the presence of an `opportunistic_channel` application
 component in the `app_data_dictionary` GroupContext extension defined in
-{{I-D.ietf-mls-extensions}}.
+{{!I-D.ietf-mls-extensions}}.
 
-~~~
+~~~ tls
 struct {
 } OpportunisticChannel;
 ~~~
@@ -124,15 +116,11 @@ The OC ComponentID is `0x0008` (suggested; see IANA Considerations).  The
 
 An OC member maintains the following state:
 
-* A GroupContext.
-
-* The MLS epoch secrets derived as part of the MLS key schedule.
-
-* A secret tree with exactly two leaves, indexed 0 and 1.
-
-* The transcript hashes defined in {{RFC9420}}.
-
-* A capability source for each OC member, as defined in {{capabilities}}.
+- A GroupContext.
+- The MLS epoch secrets derived as part of the MLS key schedule.
+- A secret tree with exactly two leaves, indexed 0 and 1.
+- The transcript hashes defined in {{!RFC9420}}.
+- A capability source for each OC member, as defined in {{capabilities}}.
 
 An OC does not maintain a ratchet tree.  The `tree_hash` field of the
 GroupContext MUST be set to the zero-length octet string in every epoch.  A
@@ -151,7 +139,7 @@ The OC creator sends an MLS targeted message to the other OC member in the
 bootstrap source group.  The targeted message `application_data` field MUST
 contain an `OCBootstrap` value.
 
-~~~
+~~~ tls
 struct {
     GroupContext group_context;
     Extension extensions<V>;
@@ -171,39 +159,33 @@ bootstrap source group.
 OPEN QUESTION: Maybe generate `joiner_secret` from the targeted message HPKE context.
 
 The `UnsignedGroupInfo` structure is the OC analogue of the `GroupInfo`
-structure in {{RFC9420}}, without the `signer` and `signature` fields.  The
+structure in {{!RFC9420}}, without the `signer` and `signature` fields.  The
 integrity and sender authentication of this object are provided by the targeted
 message in the bootstrap source group.
 
 The OC GroupContext in the bootstrap message MUST have:
 
-* `group_id` set to a fresh value that is unique among the creator's MLS
+- `group_id` set to a fresh value that is unique among the creator's MLS
   groups.
-
-* `version` set to `mls10`.
-
-* `cipher_suite` set to the cipher suite of the bootstrap source group.
-
-* `epoch` set to 0.
-
-* `tree_hash` set to the zero-length octet string.
-
-* `confirmed_transcript_hash` set to the zero-length octet string.
-
-* `extensions` containing the `opportunistic_channel` component and
+- `version` set to `mls10`.
+- `cipher_suite` set to the cipher suite of the bootstrap source group.
+- `epoch` set to 0.
+- `tree_hash` set to the zero-length octet string.
+- `confirmed_transcript_hash` set to the zero-length octet string.
+- `extensions` containing the `opportunistic_channel` component and
   `required_wire_formats` extension
 
 The `UnsignedGroupInfo.extensions` field MUST NOT contain a `ratchet_tree`
 extension.  OC bootstrap does not use the ratchet tree or GroupInfo signature
-validation steps from {{RFC9420}}.
+validation steps from {{!RFC9420}}.
 
 The creator derives the OC epoch 0 secrets by using the `joiner_secret` value
 from `OCBootstrap` directly as the epoch 0 `joiner_secret` in the epoch secret
 derivation that Welcome processing uses after GroupInfo decryption in
-{{RFC9420}}.  The PSK list is empty, so `psk_secret` is the all-zero vector of
-length `KDF.Nh`, as specified in Section 8.4 of {{RFC9420}}.  The two-leaf OC
+{{!RFC9420}}.  The PSK list is empty, so `psk_secret` is the all-zero vector of
+length `KDF.Nh`, as specified in Section 8.4 of {{!RFC9420}}.  The two-leaf OC
 secret tree is derived from the
-resulting `encryption_secret` as in {{RFC9420}}, with leaf 0 corresponding to
+resulting `encryption_secret` as in {{!RFC9420}}, with leaf 0 corresponding to
 the bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
 creator computes the epoch 0 confirmation tag over the zero-length confirmed
 transcript hash and includes it in `UnsignedGroupInfo.confirmation_tag`.
@@ -220,7 +202,7 @@ NOT create the OC state.
 
 ## Proposals and Commits
 
-Proposals and Commits are created and processed as in {{RFC9420}} with the
+Proposals and Commits are created and processed as in {{!RFC9420}} with the
 following exceptions:
 
 - Proposals that require an update path or whose semantics affect or require
@@ -229,7 +211,7 @@ following exceptions:
 - An AppDataUpdate proposal ({{I-D.ietf-mls-extensions}}) in an OC MUST NOT
   add, modify, or remove the `opportunistic_channel` component.
 - An OC Commit MUST NOT contain an `UpdatePath`.  As specified for Commits
-  without a path in {{RFC9420}}, the `commit_secret` input to the key
+  without a path in {{!RFC9420}}, the `commit_secret` input to the key
   schedule is therefore the all-zero vector of length `KDF.Nh`.
 - `tree_hash` is set to the zero-length octet string when updating the
   GroupContext, as required by {{oc-state}}.
@@ -251,24 +233,20 @@ each OC member has a capability source.  A capability source identifies a
 source group, a source group epoch, the GroupContext for that source group
 epoch, and the LeafNode that represents the OC member in that source group
 epoch.  Determining which LeafNode represents an OC member in a source group
-is the responsibility of the MLS Authentication Service (see {{RFC9750}}).
+is the responsibility of the MLS Authentication Service (see {{!RFC9750}}).
 
 The inherited capability state for an OC member consists of the following
 values from the capability source:
 
-* The `capabilities` field of the source LeafNode.
-
-* The `supported_wire_formats` extension in the source LeafNode, if present.
-
-* The `required_wire_formats` extension in the source GroupContext, if present.
+- The `capabilities` field of the source LeafNode.
+- The `supported_wire_formats` extension in the source LeafNode, if present.
+- The `required_wire_formats` extension in the source GroupContext, if present.
   A WireFormat required by the source GroupContext is treated as supported by
   every member represented in that source group epoch.
-
-* The `app_data_dictionary` extension in the source LeafNode, if present, with
+- The `app_data_dictionary` extension in the source LeafNode, if present, with
   the components that have support semantics in {{I-D.ietf-mls-extensions}}.
   This includes `safe_aad`, `app_components`, and `content_media_types`.
-
-* The `app_data_dictionary` extension in the source GroupContext, if present,
+- The `app_data_dictionary` extension in the source GroupContext, if present,
   with the same support-semantic components.  Values required by the source
   GroupContext are treated as supported by every member represented in that
   source group epoch.
@@ -295,12 +273,12 @@ extensions according to {{I-D.ietf-mls-extensions}}.
 This section defines two new MLS WireFormats that are independent of OCs:
 `mls_unsigned_public_message` and `mls_unsigned_private_message`.  They are
 equivalent to the `mls_public_message` and `mls_private_message` WireFormats
-defined in {{RFC9420}}, except that the `signature` field of
+defined in {{!RFC9420}}, except that the `signature` field of
 `FramedContentAuthData` is not transmitted and is not verified.
 
 All other RFC 9420 validation rules for PublicMessages and PrivateMessages
 apply.  Receivers MUST NOT verify a signature for these WireFormats and MUST
-verify the confirmation tag for a Commit as described in {{RFC9420}}.
+verify the confirmation tag for a Commit as described in {{!RFC9420}}.
 
 To ensure transcript agreement, members MUST NOT send a Proposal or Commit using
 one of these WireFormats unless the WireFormat is listed in the group's
@@ -326,7 +304,7 @@ case mls_unsigned_private_message:
 
 ### Format
 
-`UnsignedPublicMessage` has the same fields as `PublicMessage` in {{RFC9420}},
+`UnsignedPublicMessage` has the same fields as `PublicMessage` in {{!RFC9420}},
 except that the `signature` field of `FramedContentAuthData` is omitted and
 the `membership_tag` is always present.
 
@@ -352,11 +330,11 @@ Senders with sender type `external`, `new_member_proposal`, or
 therefore cannot use this WireFormat.  A receiver MUST reject an
 `UnsignedPublicMessage` with any other sender type.
 
-As in {{RFC9420}}, application messages MUST NOT be sent as
+As in {{!RFC9420}}, application messages MUST NOT be sent as
 `UnsignedPublicMessage`: the `content_type` MUST be `proposal` or `commit`.
 
 The `membership_tag` field is computed and verified as described in Section
-6.2 of {{RFC9420}}, with the `FramedContentAuthData` value in
+6.2 of {{!RFC9420}}, with the `FramedContentAuthData` value in
 `AuthenticatedContentTBM` taken from the canonical `AuthenticatedContent`
 representation defined in {{authenticated-content}}, i.e., with the
 `signature` field set to the zero-length octet string.
@@ -374,7 +352,7 @@ Receivers MUST verify the `membership_tag`.
 ### Format
 
 `UnsignedPrivateMessage` has the same outer fields as `PrivateMessage` in
-{{RFC9420}}.
+{{!RFC9420}}.
 
 ~~~
 struct {
@@ -418,22 +396,22 @@ struct {
 ~~~
 
 The `encrypted_sender_data` field is computed as in Section 6.3.2 of
-{{RFC9420}}.  The `SenderData` structure, sender data AAD, ciphertext sample,
+{{!RFC9420}}.  The `SenderData` structure, sender data AAD, ciphertext sample,
 key derivation, nonce derivation, and sender data validation rules are
 unchanged.
 
 The content encryption uses the same AEAD keys, nonces, AAD, reuse guard, and
-padding rules as Section 6.3.1 of {{RFC9420}}, with
+padding rules as Section 6.3.1 of {{!RFC9420}}, with
 `UnsignedPrivateMessageContent` in place of `PrivateMessageContent`.
 
-OPEN QUESTION: Decide whether we want a dedicated ratchet for unsigned private messages?
+OPEN QUESTION: Do we want a dedicated ratchet for unsigned private messages?
 
 ### Decoding
 
 After decrypting an `UnsignedPrivateMessage`, the receiver reconstructs the
 corresponding `FramedContent` from the outer message fields, decrypted sender
 data, and decrypted content, following the same construction used for
-`PrivateMessage` in {{RFC9420}}.  The corresponding `AuthenticatedContent` is
+`PrivateMessage` in {{!RFC9420}}.  The corresponding `AuthenticatedContent` is
 then constructed as described in {{authenticated-content}}, with `wire_format`
 set to `mls_unsigned_private_message`.
 
@@ -443,17 +421,14 @@ For compatibility with RFC 9420 algorithms that consume an
 `AuthenticatedContent` value, an unsigned message is represented as an
 `AuthenticatedContent` with:
 
-* `wire_format` set to `mls_unsigned_public_message` or
+- `wire_format` set to `mls_unsigned_public_message` or
   `mls_unsigned_private_message`, matching the WireFormat the message was
   framed in.
-
-* `content` set to the message's `FramedContent` (for unsigned public
+- `content` set to the message's `FramedContent` (for unsigned public
   messages) or the reconstructed `FramedContent` (for unsigned private
   messages).
-
-* `auth.signature` set to the zero-length octet string.
-
-* `auth.confirmation_tag` set to the confirmation tag carried in the message,
+- `auth.signature` set to the zero-length octet string.
+- `auth.confirmation_tag` set to the confirmation tag carried in the message,
   if the content type is `commit`.
 
 Senders and receivers MUST use this representation in all RFC 9420 algorithms
@@ -468,7 +443,7 @@ RFC 9420 computes transcript hashes and Proposal references over
 For a Commit carried in an unsigned message,
 `ConfirmedTranscriptHashInput.signature` is the zero-length octet string.  The
 other fields of `ConfirmedTranscriptHashInput` and
-`InterimTranscriptHashInput` are computed as in {{RFC9420}}.
+`InterimTranscriptHashInput` are computed as in {{!RFC9420}}.
 
 For a Proposal carried in an unsigned message, `MakeProposalRef` uses the
 encoded `AuthenticatedContent` representation with `auth.signature` set to
