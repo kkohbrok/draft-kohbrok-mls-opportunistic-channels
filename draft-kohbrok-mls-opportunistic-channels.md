@@ -42,14 +42,19 @@ informative:
 
 --- abstract
 
-This document defines two extensions to the Messaging Layer Security (MLS)
-protocol.  First, it defines an MLS WireFormat that follows the encrypted MLS
-PrivateMessage format, but omits the sender signature and relies on symmetric
-authentication by group secrets.  Second, it defines Opportunistic Channel
-Groups, a two-member MLS group variant that is bootstrapped from an existing
-MLS group using an MLS targeted message and evolves only by injecting PSKs from
-MLS groups shared by both members.
+This document defines Opportunistic MLS Channels: a way for two members of a
+Messaging Layer Security (MLS) group to efficiently create and operate an
+end-to-end encrypted 1-to-1 channel. In contrast to a full MLS group, the
+channel participants can't independently update their key material. Instead,
+participants opportunistically inject key material exported from other groups.
+As such, opportunistic channels are more efficient than full MLS groups, but
+achieve lower security guarantees. Their use-case is the transmission of
+lower-security messages such as message delivery receipts.
 
+To keep messaging in opportunistic channels efficient, this document also
+defines MLS WireFormats that are equivalent to MLS' PublicMessage and
+PrivateMessage, but omit signatures. These WireFormats are otherwise independent
+of opportunistic channels and can be used in regular MLS groups.
 
 --- middle
 
@@ -58,26 +63,29 @@ MLS groups shared by both members.
 MLS {{RFC9420}} provides authenticated group key agreement, encrypted
 application messages, and group evolution with forward secrecy and
 post-compromise security.  Some applications need a light-weight encrypted
-channel between two members who already share at least one MLS group.  Creating
-a normal two-member MLS group for every such channel carries the full cost of an
-MLS ratchet tree, which can be restrictive, especially when using post-quantum
-ciphersuites.
+channel between two members who already share at least one MLS group. For
+example, for the transmission of read or delivery receipts.
+
+Creating a normal two-member MLS group for every such channel carries the full
+cost of an MLS ratchet tree, which can be restrictive, especially when using
+post-quantum ciphersuites.
 
 This document has two parts.
 
-The first part defines `mls_unsigned_private_message`, an MLS WireFormat that
-can be used in any MLS group that has negotiated support for the format.  It is
-the same encrypted framing as MLS PrivateMessage, except that the
-FramedContentAuthData signature is not transmitted and is not verified.  The
-format therefore authenticates that the sender is a member of the group, but it
-does not authenticate the sender identity indicated by the sender leaf index.
+The first part defines Opportunistic Channels.  An OC is an MLS group with
+exactly two members, no ratchet tree, and a GroupContext that marks the group as
+an OC using an MLS application component.  OCs are bootstrapped through MLS
+targeted messages {{I-D.ietf-mls-targeted-messages}} sent in an existing MLS
+group.  OCs advance epochs only by committing PreSharedKey proposals that inject
+resumption PSKs from MLS groups shared by both members.
 
-The second part defines Opportunistic Channel Groups (OCGs).  An OCG is an MLS
-group with exactly two members, no ratchet tree, and a GroupContext that marks
-the group as an OCG using an MLS application component.  OCGs are bootstrapped
-through MLS targeted messages {{I-D.ietf-mls-targeted-messages}} sent in an
-existing MLS group.  OCGs advance epochs only by committing PreSharedKey
-proposals that inject resumption PSKs from MLS groups shared by both members.
+The second part defines unsigned variants of the MLS PublicMessage and
+PrivateMessage WireFormats. These new WireFormats are not specific to OCs,
+however. They can be used by any MLS group whose members support them.  They
+use the same framing as their signed MLS counterparts, except that the
+signature is not transmitted and is not verified.  The formats therefore
+authenticate that the sender is a member of the group, but they do not
+authenticate the sender identity indicated by the sender leaf index.
 
 # Conventions and Definitions
 
@@ -85,27 +93,89 @@ proposals that inject resumption PSKs from MLS groups shared by both members.
 
 This document uses the terminology and presentation language from {{RFC9420}}.
 
-# Unsigned Private Messages
+# Unsigned Messages
 
-This section defines a new MLS WireFormat that is independent of OCGs.  Any MLS
-group can use this WireFormat if all members support it.  When the MLS
-extensions negotiation mechanism is available, the sender advertises support
-with the `supported_wire_formats` LeafNode extension and the group requires
-support with the `required_wire_formats` GroupContext extension defined in
-{{I-D.ietf-mls-extensions}}.
+This section defines two new MLS WireFormats that are independent of OCGs:
+`mls_unsigned_public_message` and `mls_unsigned_private_message`.  They are
+equivalent to the `mls_public_message` and `mls_private_message` WireFormats
+defined in {{RFC9420}}, except that the `signature` field of
+`FramedContentAuthData` is not transmitted and is not verified.
 
-All RFC 9420 validation rules for PrivateMessages to apply, except for
-validation of the omitted FramedContentAuthData signature as described below.
-
-The new WireFormat name is `mls_unsigned_private_message`.  Its content is an
-`UnsignedPrivateMessage`.
+Any MLS group can use these WireFormats if all members support them.  When the
+MLS extensions negotiation mechanism is available, the sender advertises
+support with the `supported_wire_formats` LeafNode extension and the group
+requires support with the `required_wire_formats` GroupContext extension
+defined in {{I-D.ietf-mls-extensions}}.
 
 ~~~
+case mls_unsigned_public_message:
+    UnsignedPublicMessage unsigned_public_message;
+
 case mls_unsigned_private_message:
     UnsignedPrivateMessage unsigned_private_message;
 ~~~
 
-## Format
+## Unsigned Public Messages
+
+All RFC 9420 validation rules for PublicMessages apply, except for validation
+of the omitted FramedContentAuthData signature as described in
+{{authenticated-content}}.
+
+### Format
+
+`UnsignedPublicMessage` has the same fields as `PublicMessage` in {{RFC9420}},
+except that the `signature` field of `FramedContentAuthData` is omitted and
+the `membership_tag` is always present.
+
+~~~
+struct {
+    FramedContent content;
+
+    select (UnsignedPublicMessage.content.content_type) {
+        case commit:
+            MAC confirmation_tag;
+        case application:
+        case proposal:
+            struct{};
+    };
+
+    MAC membership_tag;
+} UnsignedPublicMessage;
+~~~
+
+The `sender_type` of an `UnsignedPublicMessage` sender MUST be `member`.
+Senders with sender type `external`, `new_member_proposal`, or
+`new_member_commit` are authenticated exclusively by their signature and
+therefore cannot use this WireFormat.  A receiver MUST reject an
+`UnsignedPublicMessage` with any other sender type.
+
+As in {{RFC9420}}, application messages MUST NOT be sent as
+`UnsignedPublicMessage`.  The `content_type` of an `UnsignedPublicMessage`
+MUST be `proposal` or `commit`.
+
+The `membership_tag` field is computed and verified as described in Sections
+6.1 and 6.2 of {{RFC9420}}, with the `FramedContentAuthData` value in
+`FramedContentTBM` taken from the canonical `AuthenticatedContent`
+representation defined in {{authenticated-content}}, i.e., with the
+`signature` field set to the zero-length octet string.
+
+### Decoding
+
+The receiver reconstructs the corresponding `AuthenticatedContent` from the
+message fields as described in {{authenticated-content}}, with `wire_format`
+set to `mls_unsigned_public_message`.
+
+Receivers MUST verify the `membership_tag` and MUST NOT verify a signature
+for an `mls_unsigned_public_message`.  Receivers MUST verify the confirmation
+tag for a Commit as described in {{RFC9420}}.
+
+## Unsigned Private Messages
+
+All RFC 9420 validation rules for PrivateMessages apply, except for validation
+of the omitted FramedContentAuthData signature as described in
+{{authenticated-content}}.
+
+### Format
 
 `UnsignedPrivateMessage` has the same outer fields as `PrivateMessage` in
 {{RFC9420}}.
@@ -162,60 +232,72 @@ padding rules as Section 6.3.1 of {{RFC9420}}, with
 
 TODO: Decide whether we want a dedicated ratchet for unsigned private messages?
 
-## Decoding
+### Decoding
 
 After decrypting an `UnsignedPrivateMessage`, the receiver reconstructs the
 corresponding `FramedContent` from the outer message fields, decrypted sender
 data, and decrypted content, following the same construction used for
-`PrivateMessage` in {{RFC9420}}.
+`PrivateMessage` in {{RFC9420}}.  The corresponding `AuthenticatedContent` is
+then constructed as described in {{authenticated-content}}, with `wire_format`
+set to `mls_unsigned_private_message`.
+
+Receivers MUST NOT verify a signature for an
+`mls_unsigned_private_message`.  Receivers MUST verify the confirmation tag for
+a Commit as described in {{RFC9420}}.
+
+## AuthenticatedContent Representation {#authenticated-content}
 
 For compatibility with RFC 9420 algorithms that consume an
-`AuthenticatedContent` value, an unsigned private message is represented as an
+`AuthenticatedContent` value, an unsigned message is represented as an
 `AuthenticatedContent` with:
 
-* `wire_format` set to `mls_unsigned_private_message`.
+* `wire_format` set to `mls_unsigned_public_message` or
+  `mls_unsigned_private_message`, matching the WireFormat the message was
+  framed in.
 
-* `content` set to the reconstructed `FramedContent`.
+* `content` set to the message's `FramedContent` (for unsigned public
+  messages) or the reconstructed `FramedContent` (for unsigned private
+  messages).
 
 * `auth.signature` set to the zero-length octet string.
 
 * `auth.confirmation_tag` set to the confirmation tag carried in the message,
   if the content type is `commit`.
 
-Receivers MUST NOT verify a signature for an
-`mls_unsigned_private_message`.  Receivers MUST verify the confirmation tag for
-a Commit as described in {{RFC9420}}.
-
 ## Transcript Hashes and Proposal References
 
 RFC 9420 computes transcript hashes and Proposal references over
-`AuthenticatedContent` objects.  Because this WireFormat does not carry a
-signature, this document defines the canonical `AuthenticatedContent`
-representation above.  Senders and receivers MUST use this representation in
-all RFC 9420 algorithms that consume an `AuthenticatedContent` value.
+`AuthenticatedContent` objects.  Because the WireFormats defined in this
+section do not carry a signature, this document defines the canonical
+`AuthenticatedContent` representation above.  Senders and receivers MUST use
+this representation in all RFC 9420 algorithms that consume an
+`AuthenticatedContent` value.
 
-For a Commit carried in `mls_unsigned_private_message`,
+For a Commit carried in an unsigned message,
 `ConfirmedTranscriptHashInput.signature` is the zero-length octet string.  The
 other fields of `ConfirmedTranscriptHashInput` and
 `InterimTranscriptHashInput` are computed as in {{RFC9420}}.
 
-For a Proposal carried in `mls_unsigned_private_message`, `MakeProposalRef` uses
-the encoded `AuthenticatedContent` representation with `auth.signature` set to
+For a Proposal carried in an unsigned message, `MakeProposalRef` uses the
+encoded `AuthenticatedContent` representation with `auth.signature` set to
 the zero-length octet string.  This rule is necessary because, without it, two
-implementations could decrypt the same unsigned Proposal but hash different byte
-strings when producing a Proposal reference.
+implementations could process the same unsigned Proposal but hash different
+byte strings when producing a Proposal reference.
 
 ## Sender Authentication
 
-`mls_unsigned_private_message` authenticates that the message was created by a
-party with access to the relevant MLS epoch secrets.  It does not authenticate
-which group member created the message.  Any group member that can derive the
-message protection keys for an epoch can construct a valid message that claims
-any non-blank member sender index in that epoch.
+The WireFormats defined in this section authenticate that the message was
+created by a party with access to the relevant MLS epoch secrets: the
+`membership_key` in the case of `mls_unsigned_public_message`, and the message
+protection keys derived from the `encryption_secret` in the case of
+`mls_unsigned_private_message`.  They do not authenticate which group member
+created the message.  Any group member that can derive those secrets for an
+epoch can construct a valid message that claims any non-blank member sender
+index in that epoch.
 
-Applications MUST NOT use this WireFormat when cryptographic sender
-authentication is required.  Applications that use this WireFormat MUST treat
-the sender index as a claimed sender index authenticated only by group
+Applications MUST NOT use these WireFormats when cryptographic sender
+authentication is required.  Applications that use these WireFormats MUST
+treat the sender index as a claimed sender index authenticated only by group
 membership.
 
 # Opportunistic Channel Groups
@@ -411,14 +493,15 @@ extensions according to {{I-D.ietf-mls-extensions}}.
 
 # Security Considerations
 
-The `mls_unsigned_private_message` WireFormat intentionally removes MLS sender
-signatures.  It provides confidentiality and group membership authentication
-for message contents, but it does not provide sender authentication.  The
-sender leaf index is a claim made by a party with access to the MLS epoch
-secrets.
+The `mls_unsigned_public_message` and `mls_unsigned_private_message`
+WireFormats intentionally remove MLS sender signatures.  They provide group
+membership authentication for message contents (and, in the case of
+`mls_unsigned_private_message`, confidentiality), but they do not provide
+sender authentication.  The sender leaf index is a claim made by a party with
+access to the MLS epoch secrets.
 
-In any group using `mls_unsigned_private_message`, a malicious member can forge
-messages that appear to come from another member.
+In any group using these WireFormats, a malicious member can forge messages
+that appear to come from another member.
 
 This property has a key-compromise impersonation consequence in two-party
 groups.  If Alice's OCG state is compromised, an attacker can use Alice's copy
@@ -449,11 +532,12 @@ value.
 
 # IANA Considerations
 
-This document requests the following registration in the "MLS Wire Formats"
+This document requests the following registrations in the "MLS Wire Formats"
 registry:
 
 | Value | Name | Recommended | Reference |
 | 0x0007 | mls_unsigned_private_message | N | RFCXXXX |
+| 0x0008 | mls_unsigned_public_message | N | RFCXXXX |
 
 This document requests the following registration in the "MLS Component Types"
 registry defined by {{I-D.ietf-mls-extensions}}:
