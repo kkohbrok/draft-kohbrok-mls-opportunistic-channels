@@ -542,14 +542,16 @@ This document requests the following registrations in the "MLS Wire Formats"
 registry:
 
 | Value | Name | Recommended | Reference |
-| 0x0007 | mls_unsigned_private_message | N | RFCXXXX |
-| 0x0008 | mls_unsigned_public_message | N | RFCXXXX |
+| --- | --- | --- | --- |
+| 0x0007 (suggested) | mls_unsigned_private_message | N | RFCXXXX |
+| 0x0008 (suggested) | mls_unsigned_public_message | N | RFCXXXX |
 
 This document requests the following registration in the "MLS Component Types"
 registry defined by {{I-D.ietf-mls-extensions}}:
 
 | Value | Name | Where | Recommended | Reference |
-| 0x0008 | opportunistic_channel | GC | N | RFCXXXX |
+| --- | --- | --- | --- | --- |
+| 0x0008 (suggested) | opportunistic_channel | GC | N | RFCXXXX |
 
 
 --- back
