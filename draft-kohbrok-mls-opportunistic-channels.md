@@ -101,11 +101,17 @@ equivalent to the `mls_public_message` and `mls_private_message` WireFormats
 defined in {{RFC9420}}, except that the `signature` field of
 `FramedContentAuthData` is not transmitted and is not verified.
 
-Any MLS group can use these WireFormats if all members support them.  When the
-MLS extensions negotiation mechanism is available, the sender advertises
-support with the `supported_wire_formats` LeafNode extension and the group
-requires support with the `required_wire_formats` GroupContext extension
-defined in {{I-D.ietf-mls-extensions}}.
+To ensure transcript agreement, members MUST NOT send a Proposal or Commit using
+one of these WireFormats unless the WireFormat is listed in the group's
+`required_wire_formats` GroupContext extension defined in
+{{I-D.ietf-mls-extensions}}.  A receiver MUST reject a Proposal or Commit that
+does not satisfy this condition.
+
+Application messages do not contribute to the shared group state, so members
+MAY send them using one of these WireFormats under a weaker condition: every
+member in the current epoch supports the WireFormat, as indicated by the
+group's `required_wire_formats` extension or by the `supported_wire_formats`
+LeafNode extension of every member.
 
 ~~~
 case mls_unsigned_public_message:
