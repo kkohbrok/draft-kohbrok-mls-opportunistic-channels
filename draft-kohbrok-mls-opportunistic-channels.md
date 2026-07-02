@@ -1,6 +1,6 @@
 ---
 title: "Opportunistic MLS Channels"
-abbrev: "OMC"
+abbrev: "OC"
 category: info
 
 docname: draft-kohbrok-mls-opportunistic-channels-latest
@@ -37,6 +37,7 @@ normative:
   I-D.ietf-mls-targeted-messages:
 
 informative:
+  RFC9750:
 
 ...
 
@@ -76,8 +77,8 @@ The first part defines Opportunistic Channels (OCs).  An OC is an MLS group with
 exactly two members, no ratchet tree, and a GroupContext that marks the group as
 an OC using an MLS application component.  OCs are bootstrapped through MLS
 targeted messages {{I-D.ietf-mls-targeted-messages}} sent in an existing MLS
-group.  OCs advance epochs only by committing PreSharedKey proposals that inject
-resumption PSKs from MLS groups shared by both members.
+group.  OCs achieve post-compromise security by committing PreSharedKey
+proposals that inject resumption PSKs from MLS groups shared by both members.
 
 The second part defines unsigned variants of the MLS PublicMessage and
 PrivateMessage WireFormats. These WireFormats are not specific to OCs and can
@@ -143,9 +144,6 @@ GroupContext MUST be set to the zero-length octet string in every epoch.  A
 receiver MUST reject an OC GroupContext whose `tree_hash` is not the
 zero-length octet string.
 
-The `commit_secret` input to the MLS key schedule MUST be the zero-length octet
-string for every OC epoch transition.
-
 OCs do not support adding, removing, or updating members.
 
 ## Bootstrapping
@@ -184,6 +182,9 @@ message in the bootstrap source group.
 
 The OC GroupContext in the bootstrap message MUST have:
 
+* `group_id` set to a fresh value that is unique among the creator's MLS
+  groups.
+
 * `version` set to `mls10`.
 
 * `cipher_suite` set to the cipher suite of the bootstrap source group.
@@ -203,19 +204,22 @@ The `UnsignedGroupInfo.extensions` field MUST NOT contain a `ratchet_tree`
 extension.  OC bootstrap does not use the ratchet tree or GroupInfo signature
 validation steps from {{RFC9420}}.
 
-The creator derives the OC epoch 0 secrets from `joiner_secret` using the epoch
-secret derivation that Welcome processing uses after GroupInfo decryption in
-{{RFC9420}}.  The PSK list is empty, so `psk_secret` is the zero-length octet
-string.  The `joiner_secret` value from `OCBootstrap` is used directly as the
-epoch 0 `joiner_secret`.  The two-leaf OC secret tree is derived from the
+The creator derives the OC epoch 0 secrets by using the `joiner_secret` value
+from `OCBootstrap` directly as the epoch 0 `joiner_secret` in the epoch secret
+derivation that Welcome processing uses after GroupInfo decryption in
+{{RFC9420}}.  The PSK list is empty, so `psk_secret` is the all-zero vector of
+length `KDF.Nh`, as specified in Section 8.4 of {{RFC9420}}.  The two-leaf OC
+secret tree is derived from the
 resulting `encryption_secret` as in {{RFC9420}}, with leaf 0 corresponding to
 the bootstrap sender and leaf 1 corresponding to the bootstrap recipient.  The
 creator computes the epoch 0 confirmation tag over the zero-length confirmed
 transcript hash and includes it in `UnsignedGroupInfo.confirmation_tag`.
 
-The recipient processes the targeted message according to
-{{I-D.ietf-mls-targeted-messages}}.  The recipient then validates the
-`OCBootstrap` value, verifies that the OC `group_id` is not already in use by
+The recipient MUST complete targeted message validation according to
+{{I-D.ietf-mls-targeted-messages}} before processing the embedded
+`OCBootstrap` value.  The recipient then verifies that the `OCBootstrap` value
+satisfies all requirements of this section, verifies that the OC `group_id` is
+not already in use by
 one of the recipient's MLS groups, derives the epoch 0 secrets from
 `joiner_secret`, and verifies `UnsignedGroupInfo.confirmation_tag`.  If any
 validation step fails, the recipient MUST reject the bootstrap message and MUST
@@ -223,22 +227,28 @@ NOT create the OC state.
 
 ## Proposals and Commits
 
-Proposals and commits are created and processed as in {{RFC9420}} with the
+Proposals and Commits are created and processed as in {{RFC9420}} with the
 following exceptions:
 
-- Any proposals that require an update path or that have semantics that affect
-  or require the ratchet tree are disallowed and MUST NOT be used. A recipient
-  of a Commit in an OC that includes such a proposal (either by value or by
-  reference) MUST reject that Commit.
+- Proposals that require an update path or whose semantics affect or require
+  the ratchet tree MUST NOT be used.  A recipient of an OC Commit that covers
+  such a proposal, whether by value or by reference, MUST reject the Commit.
+- An AppDataUpdate proposal ({{I-D.ietf-mls-extensions}}) in an OC MUST NOT
+  add, modify, or remove the `opportunistic_channel` component.
+- An OC Commit MUST NOT contain an `UpdatePath`.  As specified for Commits
+  without a path in {{RFC9420}}, the `commit_secret` input to the key
+  schedule is therefore the all-zero vector of length `KDF.Nh`.
 - `tree_hash` is set to the zero-length octet string when updating the
-  GroupContext.
-- The `commit_secret` is the zero-length octet string when computing the key
-  schedule.
+  GroupContext, as required by {{oc-state}}.
 
-The restrictions around proposals are due to the lack of a ratchet tree in OCs.
-To achieve PCS, group members should use PSK proposals that inject a
-`usage=application` resumption PSK from a group that contains both OC members.
-The referenced source group epoch MUST contain both OC members.
+The restrictions around proposals are due to the lack of a ratchet tree in
+OCs.  To achieve post-compromise security, group members should use
+PreSharedKey proposals that inject a `usage=application` resumption PSK from
+a group that contains both OC members; the referenced source group epoch MUST
+contain both OC members.
+
+OPEN QUESTION: Do we want to restrict proposals to an allow list instead of
+the category-based rule above?
 
 ## Capabilities {#capabilities}
 
@@ -247,7 +257,8 @@ which capabilities and capability negotiation extensions can be read.  Instead,
 each OC member has a capability source.  A capability source identifies a
 source group, a source group epoch, the GroupContext for that source group
 epoch, and the LeafNode that represents the OC member in that source group
-epoch.
+epoch.  Determining which LeafNode represents an OC member in a source group
+is the responsibility of the MLS Authentication Service (see {{RFC9750}}).
 
 The inherited capability state for an OC member consists of the following
 values from the capability source:
@@ -272,10 +283,12 @@ values from the capability source:
 From OC creation until the first OC Commit, the capability source for both
 members is the LeafNode for that member in the bootstrap source group and epoch.
 
-After an OC Commit is accepted, the capability source for the Commit sender is
-the LeafNode for that member in the source group and epoch identified by the
-first PreSharedKey proposal in the Commit's resolved proposal list.  The
-capability source for the other member is unchanged.
+After an OC Commit that covers at least one resumption PreSharedKey proposal
+is accepted, the capability source for the Commit sender is the LeafNode for
+that member in the source group and epoch identified by the first such
+proposal in the Commit's resolved proposal list.  The capability source for
+the other member is unchanged.  An OC Commit that covers no resumption
+PreSharedKey proposal does not change either capability source.
 
 When an OC member evaluates whether the peer supports an extension, proposal
 type, credential type, cipher suite, WireFormat, component, or media type, it
@@ -349,9 +362,9 @@ therefore cannot use this WireFormat.  A receiver MUST reject an
 As in {{RFC9420}}, application messages MUST NOT be sent as
 `UnsignedPublicMessage`: the `content_type` MUST be `proposal` or `commit`.
 
-The `membership_tag` field is computed and verified as described in Sections
-6.1 and 6.2 of {{RFC9420}}, with the `FramedContentAuthData` value in
-`FramedContentTBM` taken from the canonical `AuthenticatedContent`
+The `membership_tag` field is computed and verified as described in Section
+6.2 of {{RFC9420}}, with the `FramedContentAuthData` value in
+`AuthenticatedContentTBM` taken from the canonical `AuthenticatedContent`
 representation defined in {{authenticated-content}}, i.e., with the
 `signature` field set to the zero-length octet string.
 
@@ -519,9 +532,7 @@ members from accepting the OC Commit.
 
 The OC bootstrap relies on the security properties of MLS targeted messages.
 The unsigned GroupInfo in the bootstrap message is authenticated by the
-targeted message from the bootstrap source group.  A recipient MUST complete
-targeted message validation before processing the embedded `OCBootstrap`
-value.
+targeted message from the bootstrap source group.
 
 # IANA Considerations
 
