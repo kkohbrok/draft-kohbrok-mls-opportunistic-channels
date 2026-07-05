@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-02T00:26:28.277798+00:00",
+  "timestamp": "2026-07-05T01:52:04.816629+00:00",
   "repo": "kkohbrok/draft-kohbrok-mls-opportunistic-channels",
   "labels": [
     {
@@ -50,5 +50,79 @@
     }
   ],
   "issues": [],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOSjqpms7tELuc",
+      "title": "Address review comments",
+      "url": "https://github.com/kkohbrok/draft-kohbrok-mls-opportunistic-channels/pull/1",
+      "state": "OPEN",
+      "author": "kkohbrok",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-07-02T10:00:49Z",
+      "updatedAt": "2026-07-02T18:57:50Z",
+      "baseRepository": "kkohbrok/draft-kohbrok-mls-opportunistic-channels",
+      "baseRefName": "main",
+      "baseRefOid": "87c4a90d87580737133651a9e4c20a0e0f2e18b6",
+      "headRepository": "kkohbrok/draft-kohbrok-mls-opportunistic-channels",
+      "headRefName": "konrad/address_comments",
+      "headRefOid": "17efe588dc2bf5c08c07430c1ebcff005129fa81",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSjqpms8AAAABE0T4fQ",
+          "commit": {
+            "abbreviatedOid": "17efe58"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "Looks good, just some nits",
+          "createdAt": "2026-07-02T14:07:26Z",
+          "updatedAt": "2026-07-02T14:08:49Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Shouldn't the title be just \"Opportunistic Channels\"?",
+              "createdAt": "2026-07-02T14:07:27Z",
+              "updatedAt": "2026-07-02T14:08:49Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "Is the !RFCXXX notation really better?",
+              "createdAt": "2026-07-02T14:07:56Z",
+              "updatedAt": "2026-07-02T14:08:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSjqpms8AAAABE2YR9Q",
+          "commit": {
+            "abbreviatedOid": "17efe58"
+          },
+          "author": "kkohbrok",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-02T18:57:50Z",
+          "updatedAt": "2026-07-02T18:57:50Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "Yes. Personally, I prefer to have those references auto-generated because it's less work. If one goes unused, I don't have to remember to clean up. If I want to use a new one, I just use it in the text and I don't have to add it manually to this list.",
+              "createdAt": "2026-07-02T18:57:50Z",
+              "updatedAt": "2026-07-02T18:57:50Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
