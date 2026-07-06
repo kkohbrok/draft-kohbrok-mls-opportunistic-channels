@@ -263,7 +263,7 @@ each OC member has a capability source.  A capability source identifies a
 source group, a source group epoch, the GroupContext for that source group
 epoch, and the LeafNode that represents the OC member in that source group
 epoch.  Determining which LeafNode represents an OC member in a source group
-is the responsibility of the MLS Authentication Service (see {{RFC9750}}).
+is the responsibility of the MLS Authentication Service (see {{?RFC9750}}).
 
 The inherited capability state for an OC member consists of the following
 values from the capability source:
