@@ -181,6 +181,11 @@ The OC GroupContext in the bootstrap message MUST have:
 - `extensions` containing the `opportunistic_channel` component and
   `required_wire_formats` extension
 
+The creator MUST NOT include in the OC GroupContext a required WireFormat,
+extension, proposal type, or component that is not supported by both OC
+members according to their capability sources in the bootstrap source group
+({{capabilities}}).
+
 The `UnsignedGroupInfo.extensions` field MUST NOT contain a `ratchet_tree`
 extension.  OC bootstrap does not use the ratchet tree or GroupInfo signature
 validation steps from {{!RFC9420}}.
@@ -199,7 +204,9 @@ transcript hash and includes it in `UnsignedGroupInfo.confirmation_tag`.
 The recipient MUST complete targeted message validation according to
 {{I-D.ietf-mls-targeted-messages}} before processing the embedded
 `OCBootstrap` value.  The recipient then verifies that the `OCBootstrap` value
-satisfies all requirements of this section, verifies that the OC `group_id` is
+satisfies all requirements of this section, including that both OC members
+support the capabilities required by the OC GroupContext according to their
+capability sources ({{capabilities}}), verifies that the OC `group_id` is
 not already in use by
 one of the recipient's MLS groups, derives the epoch 0 secrets from
 `joiner_secret`, and verifies `UnsignedGroupInfo.confirmation_tag`.  If any
