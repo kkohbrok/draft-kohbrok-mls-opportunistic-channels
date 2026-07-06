@@ -5,28 +5,27 @@
 Messaging Layer Security                                      K. Kohbrok
 Internet-Draft                                                 R. Robert
 Intended status: Informational                               Phoenix R&D
-Expires: 3 January 2027                                      2 July 2026
+Expires: 7 January 2027                                      6 July 2026
 
 
-                       Opportunistic MLS Channels
+                         Opportunistic Channels
             draft-kohbrok-mls-opportunistic-channels-latest
 
 Abstract
 
-   This document defines Opportunistic MLS Channels: a way for two
-   members of a Messaging Layer Security (MLS) group to efficiently
-   create and operate an end-to-end encrypted 1-to-1 channel.  In
-   contrast to a full MLS group, the channel participants can't
-   independently update their key material.  Instead, participants
-   opportunistically inject key material exported from other groups.  As
-   such, opportunistic channels are more efficient than full MLS groups,
-   but achieve lower security guarantees.  Their use-case is the
-   transmission of lower-security messages such as message delivery
-   receipts.
+   This document defines Opportunistic Channels: a way for two members
+   of a Messaging Layer Security (MLS) group to efficiently create and
+   operate an end-to-end encrypted 1-to-1 channel.  In contrast to a
+   full MLS group, the channel participants can't independently update
+   their key material.  Instead, participants opportunistically inject
+   key material exported from other groups.  As such, opportunistic
+   channels are more efficient than full MLS groups, but achieve lower
+   security guarantees.  Their use case is the transmission of lower-
+   security messages such as message delivery receipts.
 
    To keep messaging in opportunistic channels efficient, this document
-   also defines MLS WireFormats that are equivalent to MLS'
-   PublicMessage and PrivateMessage, but omit signatures.  These
+   also defines MLS WireFormats that are equivalent to the MLS
+   PublicMessage and PrivateMessage formats, but omit signatures.  These
    WireFormats are otherwise independent of opportunistic channels and
    can be used in regular MLS groups.
 
@@ -63,7 +62,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 January 2027.
+   This Internet-Draft will expire on 7 January 2027.
 
 Copyright Notice
 
@@ -88,7 +87,8 @@ Table of Contents
      3.2.  OC State
      3.3.  Bootstrapping
      3.4.  Proposals and Commits
-     3.5.  Capabilities
+     3.5.  Message Processing
+     3.6.  Capabilities
    4.  Unsigned Messages
      4.1.  Unsigned Public Messages
        4.1.1.  Format
@@ -101,8 +101,9 @@ Table of Contents
      4.5.  Sender Authentication
    5.  Security Considerations
    6.  IANA Considerations
-   7.  Normative References
-   Acknowledgments
+   7.  References
+     7.1.  Normative References
+     7.2.  Informative References
    Authors' Addresses
 
 1.  Introduction
@@ -184,7 +185,7 @@ Table of Contents
 
    *  The transcript hashes defined in [RFC9420].
 
-   *  A capability source for each OC member, as defined in Section 3.5.
+   *  A capability source for each OC member, as defined in Section 3.6.
 
    An OC does not maintain a ratchet tree.  The tree_hash field of the
    GroupContext MUST be set to the zero-length octet string in every
@@ -202,6 +203,14 @@ Table of Contents
    The OC creator sends an MLS targeted message to the other OC member
    in the bootstrap source group.  The targeted message application_data
    field MUST contain an OCBootstrap value.
+
+   How a receiver recognizes that a targeted message payload contains an
+   OCBootstrap is up to the application.  Applications that use targeted
+   messages for more than one purpose MAY wrap targeted message payloads
+   in a container format of their choice that distinguishes the
+   individual payload types, for example the media-type-based
+   ApplicationFraming format defined in Section 6.2.4 of
+   [I-D.ietf-mls-extensions].
 
    struct {
        GroupContext group_context;
@@ -242,8 +251,14 @@ Table of Contents
 
    *  confirmed_transcript_hash set to the zero-length octet string.
 
-   *  extensions containing the opportunistic_channel component and
-      required_wire_formats extension
+   *  extensions containing an app_data_dictionary extension with the
+      opportunistic_channel component, and a required_wire_formats
+      extension.
+
+   The creator MUST NOT include in the OC GroupContext a required
+   WireFormat, extension, proposal type, or component that is not
+   supported by both OC members according to their capability sources in
+   the bootstrap source group (Section 3.6).
 
    The UnsignedGroupInfo.extensions field MUST NOT contain a
    ratchet_tree extension.  OC bootstrap does not use the ratchet tree
@@ -264,8 +279,10 @@ Table of Contents
    The recipient MUST complete targeted message validation according to
    [I-D.ietf-mls-targeted-messages] before processing the embedded
    OCBootstrap value.  The recipient then verifies that the OCBootstrap
-   value satisfies all requirements of this section, verifies that the
-   OC group_id is not already in use by one of the recipient's MLS
+   value satisfies all requirements of this section, including that both
+   OC members support the capabilities required by the OC GroupContext
+   according to their capability sources (Section 3.6), verifies that
+   the OC group_id is not already in use by one of the recipient's MLS
    groups, derives the epoch 0 secrets from joiner_secret, and verifies
    UnsignedGroupInfo.confirmation_tag.  If any validation step fails,
    the recipient MUST reject the bootstrap message and MUST NOT create
@@ -300,9 +317,28 @@ Table of Contents
    referenced source group epoch MUST contain both OC members.
 
    OPEN QUESTION: Do we want to restrict proposals to an allow list
-   instead of the category-based rule above?
+   instead of the category-based rule above?  For example, the rule
+   above permits ReInit proposals, since they require neither an update
+   path nor a ratchet tree, but reinitialization as defined in [RFC9420]
+   relies on Welcome messages and therefore cannot produce an OC.
 
-3.5.  Capabilities
+3.5.  Message Processing
+
+   Members process OC messages according to the message processing rules
+   of [RFC9420] and, where applicable, Section 4, with the following
+   changes to validation steps that consult the ratchet tree:
+
+   *  The sender_type of an OC message sender MUST be member, and the
+      sender leaf index MUST be 0 or 1.  This rule replaces the RFC 9420
+      check that the sender leaf index identifies a non-blank leaf in
+      the ratchet tree.
+
+   *  For WireFormats that carry a signature, the receiver verifies the
+      signature using the signature public key of the LeafNode in the
+      sender's current capability source (Section 3.6) instead of a
+      LeafNode in the OC's ratchet tree.
+
+3.6.  Capabilities
 
    OCs have no ratchet tree and therefore do not have OC-local LeafNodes
    from which capabilities and capability negotiation extensions can be
@@ -343,10 +379,11 @@ Table of Contents
    After an OC Commit that covers at least one resumption PreSharedKey
    proposal is accepted, the capability source for the Commit sender is
    the LeafNode for that member in the source group and epoch identified
-   by the first such proposal in the Commit's resolved proposal list.
-   The capability source for the other member is unchanged.  An OC
-   Commit that covers no resumption PreSharedKey proposal does not
-   change either capability source.
+   by the first such proposal in the order used for the psk_secret
+   computation (see Section 8.4 of [RFC9420]).  The capability source
+   for the other member is unchanged.  An OC Commit that covers no
+   resumption PreSharedKey proposal does not change either capability
+   source.
 
    When an OC member evaluates whether the peer supports an extension,
    proposal type, credential type, cipher suite, WireFormat, component,
@@ -622,7 +659,9 @@ Table of Contents
 
                                   Table 2
 
-7.  Normative References
+7.  References
+
+7.1.  Normative References
 
    [I-D.ietf-mls-extensions]
               Robert, R., "The Messaging Layer Security (MLS)
@@ -634,9 +673,9 @@ Table of Contents
    [I-D.ietf-mls-targeted-messages]
               Robert, R., "Messaging Layer Security (MLS) Targeted
               Messages", Work in Progress, Internet-Draft, draft-ietf-
-              mls-targeted-messages-00, 2 March 2026,
+              mls-targeted-messages-01, 6 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-mls-
-              targeted-messages-00>.
+              targeted-messages-01>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -652,14 +691,12 @@ Table of Contents
               Security (MLS) Protocol", RFC 9420, DOI 10.17487/RFC9420,
               July 2023, <https://www.rfc-editor.org/rfc/rfc9420>.
 
+7.2.  Informative References
+
    [RFC9750]  Beurdouche, B., Rescorla, E., Omara, E., Inguva, S., and
               A. Duric, "The Messaging Layer Security (MLS)
               Architecture", RFC 9750, DOI 10.17487/RFC9750, April 2025,
               <https://www.rfc-editor.org/rfc/rfc9750>.
-
-Acknowledgments
-
-   TODO acknowledge.
 
 Authors' Addresses
 
