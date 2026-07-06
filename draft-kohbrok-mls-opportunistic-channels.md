@@ -287,7 +287,8 @@ members is the LeafNode for that member in the bootstrap source group and epoch.
 After an OC Commit that covers at least one resumption PreSharedKey proposal
 is accepted, the capability source for the Commit sender is the LeafNode for
 that member in the source group and epoch identified by the first such
-proposal in the Commit's resolved proposal list.  The capability source for
+proposal in the order used for the `psk_secret` computation (see
+{{Section 8.4 of RFC9420}}).  The capability source for
 the other member is unchanged.  An OC Commit that covers no resumption
 PreSharedKey proposal does not change either capability source.
 
