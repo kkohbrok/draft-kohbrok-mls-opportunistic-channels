@@ -138,6 +138,13 @@ The OC creator sends an MLS targeted message to the other OC member in the
 bootstrap source group.  The targeted message `application_data` field MUST
 contain an `OCBootstrap` value.
 
+How a receiver recognizes that a targeted message payload contains an
+`OCBootstrap` is up to the application.  Applications that use targeted
+messages for more than one purpose MAY wrap targeted message payloads in a
+container format of their choice that distinguishes the individual payload
+types, for example the media-type-based `ApplicationFraming` format defined in
+{{Section 6.2.4 of I-D.ietf-mls-extensions}}.
+
 ~~~ tls
 struct {
     GroupContext group_context;
