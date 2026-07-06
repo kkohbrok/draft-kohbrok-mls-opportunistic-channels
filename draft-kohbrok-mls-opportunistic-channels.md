@@ -241,6 +241,20 @@ proposals, since they require neither an update path nor a ratchet tree, but
 reinitialization as defined in {{!RFC9420}} relies on Welcome messages and
 therefore cannot produce an OC.
 
+## Message Processing
+
+Members process OC messages according to the message processing rules of
+{{!RFC9420}} and, where applicable, {{unsigned-messages}}, with the following
+changes to validation steps that consult the ratchet tree:
+
+- The `sender_type` of an OC message sender MUST be `member`, and the sender
+  leaf index MUST be 0 or 1.  This rule replaces the RFC 9420 check that the
+  sender leaf index identifies a non-blank leaf in the ratchet tree.
+- For WireFormats that carry a signature, the receiver verifies the signature
+  using the signature public key of the LeafNode in the sender's current
+  capability source ({{capabilities}}) instead of a LeafNode in the OC's
+  ratchet tree.
+
 ## Capabilities {#capabilities}
 
 OCs have no ratchet tree and therefore do not have OC-local LeafNodes from
