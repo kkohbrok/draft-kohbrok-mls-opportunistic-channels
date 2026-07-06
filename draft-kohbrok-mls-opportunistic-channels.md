@@ -40,13 +40,13 @@ end-to-end encrypted 1-to-1 channel. In contrast to a full MLS group, the
 channel participants can't independently update their key material. Instead,
 participants opportunistically inject key material exported from other groups.
 As such, opportunistic channels are more efficient than full MLS groups, but
-achieve lower security guarantees. Their use-case is the transmission of
+achieve lower security guarantees. Their use case is the transmission of
 lower-security messages such as message delivery receipts.
 
 To keep messaging in opportunistic channels efficient, this document also
-defines MLS WireFormats that are equivalent to MLS' PublicMessage and
-PrivateMessage, but omit signatures. These WireFormats are otherwise independent
-of opportunistic channels and can be used in regular MLS groups.
+defines MLS WireFormats that are equivalent to the MLS PublicMessage and
+PrivateMessage formats, but omit signatures. These WireFormats are otherwise
+independent of opportunistic channels and can be used in regular MLS groups.
 
 --- middle
 
@@ -178,8 +178,8 @@ The OC GroupContext in the bootstrap message MUST have:
 - `epoch` set to 0.
 - `tree_hash` set to the zero-length octet string.
 - `confirmed_transcript_hash` set to the zero-length octet string.
-- `extensions` containing the `opportunistic_channel` component and
-  `required_wire_formats` extension
+- `extensions` containing an `app_data_dictionary` extension with the
+  `opportunistic_channel` component, and a `required_wire_formats` extension.
 
 The creator MUST NOT include in the OC GroupContext a required WireFormat,
 extension, proposal type, or component that is not supported by both OC
@@ -263,7 +263,7 @@ each OC member has a capability source.  A capability source identifies a
 source group, a source group epoch, the GroupContext for that source group
 epoch, and the LeafNode that represents the OC member in that source group
 epoch.  Determining which LeafNode represents an OC member in a source group
-is the responsibility of the MLS Authentication Service (see {{!RFC9750}}).
+is the responsibility of the MLS Authentication Service (see {{RFC9750}}).
 
 The inherited capability state for an OC member consists of the following
 values from the capability source:
@@ -323,7 +323,7 @@ member in the current epoch supports the WireFormat, as indicated by the
 group's `required_wire_formats` extension or by the `supported_wire_formats`
 LeafNode extension of every member.
 
-~~~
+~~~ tls
 case mls_unsigned_public_message:
     UnsignedPublicMessage unsigned_public_message;
 
@@ -339,7 +339,7 @@ case mls_unsigned_private_message:
 except that the `signature` field of `FramedContentAuthData` is omitted and
 the `membership_tag` is always present.
 
-~~~
+~~~ tls
 struct {
     FramedContent content;
 
@@ -385,7 +385,7 @@ Receivers MUST verify the `membership_tag`.
 `UnsignedPrivateMessage` has the same outer fields as `PrivateMessage` in
 {{!RFC9420}}.
 
-~~~
+~~~ tls
 struct {
     opaque group_id<V>;
     uint64 epoch;
@@ -401,7 +401,7 @@ This structure carries the same content alternatives and padding rules as
 `PrivateMessageContent`, but omits the `signature` field from
 `FramedContentAuthData`.  Commits still carry a confirmation tag.
 
-~~~
+~~~ tls
 struct {
     select (UnsignedPrivateMessage.content_type) {
         case application:
@@ -549,11 +549,3 @@ registry defined by {{I-D.ietf-mls-extensions}}:
 | Value | Name | Where | Recommended | Reference |
 | --- | --- | --- | --- | --- |
 | 0x0008 (suggested) | opportunistic_channel | GC | N | RFCXXXX |
-
-
---- back
-
-# Acknowledgments
-{:numbered="false"}
-
-TODO acknowledge.
