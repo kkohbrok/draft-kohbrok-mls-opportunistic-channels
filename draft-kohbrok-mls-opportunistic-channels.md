@@ -1,6 +1,5 @@
 ---
-title: "Opportunistic MLS Channels"
-abbrev: "OC"
+title: "Opportunistic Channels"
 category: info
 
 docname: draft-kohbrok-mls-opportunistic-channels-latest
@@ -35,7 +34,7 @@ author:
 
 --- abstract
 
-This document defines Opportunistic MLS Channels: a way for two members of a
+This document defines Opportunistic Channels: a way for two members of a
 Messaging Layer Security (MLS) group to efficiently create and operate an
 end-to-end encrypted 1-to-1 channel. In contrast to a full MLS group, the
 channel participants can't independently update their key material. Instead,
