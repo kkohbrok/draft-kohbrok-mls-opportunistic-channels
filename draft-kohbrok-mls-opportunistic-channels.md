@@ -236,7 +236,10 @@ a group that contains both OC members; the referenced source group epoch MUST
 contain both OC members.
 
 OPEN QUESTION: Do we want to restrict proposals to an allow list instead of
-the category-based rule above?
+the category-based rule above?  For example, the rule above permits ReInit
+proposals, since they require neither an update path nor a ratchet tree, but
+reinitialization as defined in {{!RFC9420}} relies on Welcome messages and
+therefore cannot produce an OC.
 
 ## Capabilities {#capabilities}
 
