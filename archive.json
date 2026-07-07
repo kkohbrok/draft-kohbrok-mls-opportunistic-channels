@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-05T01:52:04.816629+00:00",
+  "timestamp": "2026-07-07T01:54:37.041941+00:00",
   "repo": "kkohbrok/draft-kohbrok-mls-opportunistic-channels",
   "labels": [
     {
@@ -56,24 +56,26 @@
       "id": "PR_kwDOSjqpms7tELuc",
       "title": "Address review comments",
       "url": "https://github.com/kkohbrok/draft-kohbrok-mls-opportunistic-channels/pull/1",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "kkohbrok",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2026-07-02T10:00:49Z",
-      "updatedAt": "2026-07-02T18:57:50Z",
+      "updatedAt": "2026-07-06T14:17:49Z",
       "baseRepository": "kkohbrok/draft-kohbrok-mls-opportunistic-channels",
       "baseRefName": "main",
       "baseRefOid": "87c4a90d87580737133651a9e4c20a0e0f2e18b6",
       "headRepository": "kkohbrok/draft-kohbrok-mls-opportunistic-channels",
       "headRefName": "konrad/address_comments",
-      "headRefOid": "17efe588dc2bf5c08c07430c1ebcff005129fa81",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "57d593ddc0a37e732c50bca5b02c90743a0a9bb6",
+      "closedAt": "2026-07-06T14:17:49Z",
+      "mergedAt": "2026-07-06T14:17:49Z",
+      "mergedBy": "kkohbrok",
+      "mergeCommit": {
+        "oid": "31f4cf83e7eaaeddaf3e92ad382052854718a6f6"
+      },
       "comments": [],
       "reviews": [
         {
@@ -121,6 +123,19 @@
               "updatedAt": "2026-07-02T18:57:50Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSjqpms8AAAABFF3A0w",
+          "commit": {
+            "abbreviatedOid": "57d593d"
+          },
+          "author": "raphaelrobert",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-06T14:13:09Z",
+          "updatedAt": "2026-07-06T14:13:09Z",
+          "comments": []
         }
       ]
     }
